@@ -329,6 +329,8 @@ export default function MapPage() {
                 onClick={async () => {
                   // Save current quest data before ending
                   if (quest) {
+                    const allCompleted = (quest.completedLocationIds?.length || 0) === displayLocations.length;
+                    setIsAllCompleted(allCompleted);
                     setFinalQuestData({
                       time: formatDuration(quest.timeSpent || "PT0S"),
                       distance: quest.distance || 0,
@@ -405,8 +407,8 @@ export default function MapPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[6000] flex items-center justify-center animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-[90vw] animate-in zoom-in duration-300">
             <div className="text-center mb-6">
-              <div className="text-4xl font-bold mb-2" style={{ color: "var(--brand, #5AB4C5)" }}>
-                恭喜完成！
+              <div className="text-4xl font-bold mb-2" style={{ color: isAllCompleted ? "var(--brand, #5AB4C5)" : "#EF4444" }}>
+                {isAllCompleted ? "恭喜完成！" : "任務已結束"}
               </div>
               <div className="text-2xl font-bold text-neutral-800 mb-4">
                 {selectedMission?.name}
@@ -425,19 +427,21 @@ export default function MapPage() {
                 </div>
                 <div>
                   <div className="text-sm text-neutral-600 mb-1">完成點</div>
-                  <div className="text-xl font-bold text-neutral-800">{displayLocations.length}</div>
+                  <div className="text-xl font-bold text-neutral-800">{lastCompletedCount} / {displayLocations.length}</div>
                 </div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <button
-                onClick={() => router.push(`/missions/${selectedMissionId}/paths?questId=${questId}`)}
-                className="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-90 active:scale-95"
-                style={{ background: "var(--brand, #5AB4C5)" }}
-              >
-                查看任務詳細資料
-              </button>
+              {isAllCompleted && (
+                <button
+                  onClick={() => router.push(`/missions/${selectedMissionId}/paths?questId=${questId}`)}
+                  className="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-90 active:scale-95"
+                  style={{ background: "var(--brand, #5AB4C5)" }}
+                >
+                  查看任務詳細資料
+                </button>
+              )}
               <button
                 onClick={() => setShowMissionSummary(false)}
                 className="w-full py-3 rounded-xl font-bold text-neutral-700 bg-neutral-100 transition-all hover:bg-neutral-200 active:scale-95"
