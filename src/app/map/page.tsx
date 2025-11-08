@@ -24,6 +24,7 @@ export default function MapPage() {
 
   // Selected mission state
   const [selectedMissionId, setSelectedMissionId] = useState("1");
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
 
   // Fetch missions data
   const { missions } = useMissionsList();
@@ -66,6 +67,8 @@ export default function MapPage() {
           quest={quest}
           isRecording={isRecording}
           completedLocationIds={quest?.completedLocationIds}
+          selectedLocationId={selectedLocationId}
+          onLocationClick={setSelectedLocationId}
         />
       </div>
       {!isRecording && (
@@ -175,11 +178,17 @@ export default function MapPage() {
                 <ul className="space-y-2">
                   {selectedMission?.locations.map((loc, j) => {
                     const isCompleted = quest?.completedLocationIds?.includes(loc.id);
+                    const isSelected = selectedLocationId === loc.id;
                     return (
                       <li
                         key={loc.id}
-                        className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                          isCompleted ? "bg-green-50" : "bg-neutral-50"
+                        onClick={() => setSelectedLocationId(loc.id)}
+                        className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-[color:var(--brand,#5AB4C5)]/20 ring-2 ring-[color:var(--brand,#5AB4C5)]"
+                            : isCompleted
+                            ? "bg-green-50 hover:bg-green-100"
+                            : "bg-neutral-50 hover:bg-neutral-100"
                         }`}
                       >
                         <span

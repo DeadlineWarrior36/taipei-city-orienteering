@@ -24,6 +24,8 @@ export default function Map({
   logPath,
   quest,
   isRecording,
+  selectedLocationId,
+  onLocationClick,
 }: {
   path?: Coordinate[];
   locations?: Location[];
@@ -33,6 +35,8 @@ export default function Map({
   logPath?: (c: Coordinate) => Promise<void> | void;
   quest?: { path: Coordinate[] } | null;
   isRecording?: boolean;
+  selectedLocationId?: string | null;
+  onLocationClick?: (locationId: string) => void;
 }) {
   // Development mode: coordinate offset control
   const [latOffset, setLatOffset] = useState(0);
@@ -47,8 +51,8 @@ export default function Map({
 
   const coords = useMemo(
     () => ({
-      latitude: (originalOri?.latitude ?? 0) + latOffset,
-      longitude: (originalOri?.longitude ?? 0) + lngOffset,
+      latitude: originalOri?.latitude ? originalOri.latitude + latOffset : 25.0330,
+      longitude: originalOri?.longitude ? originalOri.longitude + lngOffset : 121.5654,
     }),
     [originalOri, latOffset, lngOffset]
   );
@@ -98,6 +102,21 @@ export default function Map({
     return null;
   }
 
+  // helper component to pan to selected location
+  function PanToLocation() {
+    const map = useMap();
+    useEffect(() => {
+      if (!map || !selectedLocationId || !locations) return;
+      const location = locations.find((loc) => loc.id === selectedLocationId);
+      if (location && location.lat && location.lnt) {
+        map.setView([location.lat, location.lnt], 16, {
+          animate: true,
+        });
+      }
+    }, [map]);
+    return null;
+  }
+
   return (
     <div className="relative h-full">
       <MapContainer
@@ -123,7 +142,10 @@ export default function Map({
         </CircleMarker>
 
         {/* Recenter map when coordinates change */}
-        {coords && <Recenter lat={coords.latitude} lnt={coords.longitude} />}
+        {coords && !selectedLocationId && <Recenter lat={coords.latitude} lnt={coords.longitude} />}
+
+        {/* Pan to selected location */}
+        {selectedLocationId && <PanToLocation />}
 
         {/* Draw recorded quest path */}
         {quest?.path && quest.path.length > 0 && (
@@ -140,6 +162,8 @@ export default function Map({
           locations={locations}
           completedLocationIds={completedLocationIds}
           show={showMission}
+          selectedLocationId={selectedLocationId}
+          onLocationClick={onLocationClick}
         />
       </MapContainer>
 
