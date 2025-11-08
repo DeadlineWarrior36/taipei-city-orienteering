@@ -1,5 +1,6 @@
 export interface Location {
   id: string;
+  name: string;
   lnt: number;
   lat: number;
   point: number;
@@ -76,4 +77,13 @@ export interface PathData {
 
 export interface MissionPathsResponse {
   paths: PathData[];
+}
+
+export interface LocationsListRequest {
+  lnt?: number;
+  lat?: number;
+}
+
+export interface LocationsListResponse {
+  locations: Location[];
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { MissionsListResponse } from '@/types/api';
+import type { LocationsListResponse } from '@/types/api';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,16 +24,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const response: MissionsListResponse = {
-      missions: [
-        {
-          id: 'mission_1',
-          name: 'Taipei City Tour',
-          locations: [
-            { id: 'loc_1', name: 'Taipei 101', lnt: 121.5654, lat: 25.0330, point: 10 },
-            { id: 'loc_2', name: 'National Palace Museum', lnt: 121.5200, lat: 25.0478, point: 15 },
-          ],
-        },
+    const response: LocationsListResponse = {
+      locations: [
+        { id: 'loc_1', name: 'Taipei 101', lnt: 121.5654, lat: 25.0330, point: 10 },
+        { id: 'loc_2', name: 'National Palace Museum', lnt: 121.5200, lat: 25.0478, point: 15 },
+        { id: 'loc_3', name: 'Chiang Kai-shek Memorial Hall', lnt: 121.5436, lat: 25.0375, point: 20 },
       ],
     };
 
