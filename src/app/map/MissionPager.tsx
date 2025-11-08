@@ -85,9 +85,8 @@ export default function MissionPager({
 
   return (
     <>
-      {/* 懸浮主按鈕：位置會依 sheet 高度上移 */}
       <div
-        className="pointer-events-none fixed inset-x-0 z-[1150] flex justify-center"
+        className="pointer-events-none fixed inset-x-0 z-5000 flex justify-center"
         style={{ bottom: `calc(${sheetVH} + 16px)` }}
       >
         <button
@@ -100,7 +99,6 @@ export default function MissionPager({
         </button>
       </div>
 
-      {/* Bottom Sheet：高度可拖曳，內容維持你的卡片輪播 */}
       <div
         className="fixed inset-x-0 bottom-0 z-[1100]"
         style={{ height: sheetVH }}
@@ -118,8 +116,6 @@ export default function MissionPager({
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
             />
-
-            {/* 進度圓點 */}
             <div className="absolute right-4 top-3.5 z-[1] flex gap-1.5">
               {missions.map((_, i) => (
                 <span
@@ -132,7 +128,6 @@ export default function MissionPager({
                 />
               ))}
             </div>
-
             {/* 卡片列（左右滑） */}
             <div
               ref={rowRef}

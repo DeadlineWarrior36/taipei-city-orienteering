@@ -3,15 +3,17 @@
 import "leaflet/dist/leaflet.css";
 
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
-
 import { Coordinate } from "@/types/api";
 import { useGeolocated } from "react-geolocated";
+import MissionDisplay from "./MissionDisplay";
 
 export default function Map({
   locations,
+  showMission = true,
 }: {
   path?: Coordinate[];
   locations?: Coordinate[];
+  showMission?: boolean;
 }) {
   const { coords } = useGeolocated({
     positionOptions: { enableHighAccuracy: false },
@@ -71,6 +73,7 @@ export default function Map({
             <Popup>任務點 #{i + 1}</Popup>
           </CircleMarker>
         ))}
+        <MissionDisplay locations={locations} show={showMission} />
       </MapContainer>
     </div>
   );

@@ -31,7 +31,7 @@ export default function MapPage() {
     missionId: selectedMissionId,
   });
 
-  console.log("Selected Mission ID:", selectedMission);
+  console.log("Selected Mission ID:", selectedMission, isRecording);
 
   // Start quest handler
   const handleStartQuest = useCallback(async () => {
@@ -48,26 +48,31 @@ export default function MapPage() {
 
   return (
     <div className="relative overflow-hidden">
-      <Map locations={selectedMission?.locations} />
-      <MissionPager
-        missions={missions?.missions || []}
-        index={
-          missions?.missions.findIndex((m) => m.id === selectedMissionId) || 0
-        }
-        onIndexChange={(index) =>
-          setSelectedMissionId(missions?.missions[index]?.id || "1")
-        }
-        onStart={handleStartQuest}
+      <Map
+        locations={selectedMission?.locations}
+        showMission={!isRecording} /* Hide mission points when recording */
       />
+      {!isRecording && (
+        <MissionPager
+          missions={missions?.missions || []}
+          index={
+            missions?.missions.findIndex((m) => m.id === selectedMissionId) || 0
+          }
+          onIndexChange={(index) =>
+            setSelectedMissionId(missions?.missions[index]?.id || "1")
+          }
+          onStart={handleStartQuest}
+        />
+      )}
 
       {/* Quest controls */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-white/90 p-4 rounded-lg shadow">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-5000 p-4">
         {isRecording && (
           <button
             onClick={endQuest}
-            className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
+            className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
           >
-            End Quest
+            結束任務
           </button>
         )}
       </div>
