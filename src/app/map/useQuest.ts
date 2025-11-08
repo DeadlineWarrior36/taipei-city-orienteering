@@ -8,6 +8,9 @@ export type QuestData = {
   startTime: number;
   endTime?: number;
   path: Coordinate[];
+  completedLocationIds: string[];
+  points: number;
+  distance: number;
 };
 
 export function useQuest({
@@ -30,7 +33,15 @@ export function useQuest({
       });
       // Assume questRes returns { id: string }
       setQuestId(questRes.id);
-      setQuest({ userId, missionId, startTime, path: [] });
+      setQuest({
+        userId,
+        missionId,
+        startTime,
+        path: [],
+        completedLocationIds: [],
+        points: 0,
+        distance: 0,
+      });
       setIsRecording(true);
     } catch (err) {
       console.error("Failed to start quest", err);
@@ -45,9 +56,37 @@ export function useQuest({
         const newPath = [...prev.path, { ...location }];
         // Submit the entire path to API
         if (questId) {
-          apiClient.submitQuest(userId, questId, { paths: newPath });
+          // Submit path and get updated quest status
+          apiClient
+            .submitQuest(userId, questId, {
+              paths: newPath,
+            })
+            .then((res) => {
+              // Update quest with the latest data from API
+              setQuest((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      completedLocationIds: res.completed_location_ids,
+                      points: res.points,
+                      distance: res.distance,
+                    }
+                  : null
+              );
+            })
+            .catch((err) => {
+              console.error("Failed to submit quest update", err);
+            });
+
+          return {
+            ...prev,
+            path: newPath,
+          };
         }
-        return { ...prev, path: newPath };
+        return {
+          ...prev,
+          path: newPath,
+        };
       });
     },
     [questId, userId]

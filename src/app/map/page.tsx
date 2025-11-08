@@ -58,6 +58,7 @@ export default function MapPage() {
         logPath={logPath}
         quest={quest}
         isRecording={isRecording}
+        completedLocationIds={quest?.completedLocationIds}
       />
       {!isRecording && (
         <MissionPager

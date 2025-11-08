@@ -9,11 +9,13 @@ function clamp(n: number, min: number, max: number) {
 
 export default function LocationsList({
   locations,
+  completedLocationIds,
   title = "控制點",
   show = false,
   onClose,
 }: {
   locations?: Location[];
+  completedLocationIds?: string[];
   title?: string;
   show?: boolean;
   onClose?: () => void;
@@ -54,7 +56,7 @@ export default function LocationsList({
 
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-[1100]"
+      className="fixed inset-x-0 bottom-0 z-1100"
       style={{ height: sheetVH }}
     >
       <div className="mx-auto h-full w-full max-w-5xl px-3">
@@ -108,7 +110,14 @@ export default function LocationsList({
                   </div>
                   <ul className="divide-y divide-neutral-200">
                     {locations.map((loc, j) => (
-                      <li key={j} className="px-4 py-3 flex items-start gap-3">
+                      <li
+                        key={j}
+                        className={`px-4 py-3 flex items-start gap-3 ${
+                          completedLocationIds?.includes(loc.id)
+                            ? "bg-green-100"
+                            : ""
+                        }`}
+                      >
                         <span
                           className="mt-0.5 grid h-6 w-6 place-items-center rounded-full text-xs font-semibold text-white"
                           style={{ background: "var(--brand, #5AB4C5)" }}

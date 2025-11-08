@@ -5,9 +5,11 @@ import { Location } from "@/types/api";
 
 export default function MissionDisplay({
   locations,
+  completedLocationIds,
   show = true,
 }: {
   locations?: Location[];
+  completedLocationIds?: string[];
   show?: boolean;
 }) {
   if (!show || !locations?.length) return null;
@@ -20,8 +22,13 @@ export default function MissionDisplay({
           center={[location.lat, location.lnt]}
           radius={8}
           pathOptions={{
-            color: "#dc2626", // red-600
+            color: completedLocationIds?.includes(location.id)
+              ? "#16a34a" // red-600 if completed else green-600
+              : "#dc2626",
             weight: 2,
+            fillColor: completedLocationIds?.includes(location.id)
+              ? "#16a34a"
+              : "#dc2626", // green-600 if completed else red-600
             fillOpacity: 0.2,
           }}
         >
