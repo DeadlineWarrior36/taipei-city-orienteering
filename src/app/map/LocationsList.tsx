@@ -7,12 +7,12 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-export default function LocationsList({ 
+export default function LocationsList({
   locations,
-  title = "控制點", 
+  title = "控制點",
   show = false,
   onClose,
-}: { 
+}: {
   locations?: Coordinate[];
   title?: string;
   show?: boolean;
@@ -23,7 +23,7 @@ export default function LocationsList({
   const dragStartY = useRef<number | null>(null);
   const dragStartPct = useRef<number>(sheetPct);
   const sheetVH = `${sheetPct * 100}vh`;
-  
+
   // ---- Drag handlers ----
   const onPointerDown = (e: React.PointerEvent) => {
     dragStartY.current = e.clientY;
@@ -58,8 +58,10 @@ export default function LocationsList({
       style={{ height: sheetVH }}
     >
       <div className="mx-auto h-full w-full max-w-5xl px-3">
-        <div className="relative h-full rounded-t-3xl border border-white/50
-                     bg-white/85 backdrop-blur-md shadow-[0_-12px_32px_rgba(0,0,0,0.16)]">
+        <div
+          className="relative h-full rounded-t-3xl border border-white/50
+                     bg-white/85 backdrop-blur-md shadow-[0_-12px_32px_rgba(0,0,0,0.16)]"
+        >
           {/* Handle (draggable) */}
           <div
             className="absolute left-1/2 top-3 -translate-x-1/2 h-1.5 w-12 rounded-full bg-neutral-300/90 cursor-grab active:cursor-grabbing"
@@ -68,7 +70,7 @@ export default function LocationsList({
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
           />
-          
+
           {/* Close button */}
           {onClose && (
             <button
@@ -81,8 +83,10 @@ export default function LocationsList({
 
           {/* Content */}
           <div className="absolute inset-0 mt-8 px-4 pb-5 overflow-y-auto">
-            <section className="h-[calc(100%-8px)] w-full rounded-3xl overflow-hidden
-                            bg-white shadow-lg flex flex-col">
+            <section
+              className="h-[calc(100%-8px)] w-full rounded-3xl overflow-hidden
+                            bg-white shadow-lg flex flex-col"
+            >
               {/* Header */}
               <div
                 className="px-6 py-4 text-white shrink-0"
@@ -104,10 +108,7 @@ export default function LocationsList({
                   </div>
                   <ul className="divide-y divide-neutral-200">
                     {locations.map((_, j) => (
-                      <li
-                        key={j}
-                        className="px-4 py-3 flex items-start gap-3"
-                      >
+                      <li key={j} className="px-4 py-3 flex items-start gap-3">
                         <span
                           className="mt-0.5 grid h-6 w-6 place-items-center rounded-full text-xs font-semibold text-white"
                           style={{ background: "var(--brand, #5AB4C5)" }}
