@@ -97,7 +97,7 @@ export default function MapPage() {
   const [completionDistance, setCompletionDistance] = useState(0);
   const [isAllCompleted, setIsAllCompleted] = useState(false);
   const [showMissionSummary, setShowMissionSummary] = useState(false);
-  const [finalQuestData, setFinalQuestData] = useState<{ time: string; distance: number } | null>(null);
+  const [finalQuestData, setFinalQuestData] = useState<{ time: string; distance: number; completedCount: number } | null>(null);
 
   // Format ISO 8601 duration (PT1H2M3S) to readable format
   const formatDuration = (duration: string) => {
@@ -146,6 +146,7 @@ export default function MapPage() {
       setFinalQuestData({
         time: completionTime,
         distance: completionDistance,
+        completedCount: quest?.completedLocationIds?.length || 0,
       });
       // End quest (this will clear quest state)
       await endQuest();
@@ -337,6 +338,7 @@ export default function MapPage() {
                     setFinalQuestData({
                       time: formatDuration(quest.timeSpent || "PT0S"),
                       distance: quest.distance || 0,
+                      completedCount: quest.completedLocationIds?.length || 0,
                     });
                   }
                   await endQuest();
@@ -430,7 +432,7 @@ export default function MapPage() {
                 </div>
                 <div>
                   <div className="text-sm text-neutral-600 mb-1">完成點</div>
-                  <div className="text-xl font-bold text-neutral-800">{lastCompletedCount} / {displayLocations.length}</div>
+                  <div className="text-xl font-bold text-neutral-800">{finalQuestData?.completedCount || 0} / {displayLocations.length}</div>
                 </div>
               </div>
             </div>
