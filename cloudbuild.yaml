@@ -4,6 +4,7 @@ steps:
     args:
       - 'build'
       - '--build-arg'
+      - 'NEXT_PUBLIC_API_URL=https://web-api-server-167351732833.asia-east1.run.app/api/v1'
       - '-t'
       - 'gcr.io/$PROJECT_ID/taipei-city-orienteering:$COMMIT_SHA'
       - '-t'
