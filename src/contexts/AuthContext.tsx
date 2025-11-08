@@ -1,27 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface TPBridge {
-  onmessage: (event: MessageEvent) => void;
-  postMessage: (
-    action: string,
-    data: unknown
-  ) => void;
-}
-
-declare global {
-  interface Window {
-    flutterObject?: TPBridge;
-  }
-}
-
-interface AuthContextType {
-  userId: string | null;
-  token: string | null;
-  login: () => Promise<void>;
-  logout: () => void;
-}
+import type { AuthContextType, TPBridgeMessage } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -93,10 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       window.flutterObject.onmessage = (event: MessageEvent) => {
         try {
-          let reply = event.data;
+          let reply: TPBridgeMessage = event.data;
 
           if (typeof reply === 'string') {
-            reply = JSON.parse(reply);
+            reply = JSON.parse(reply) as TPBridgeMessage;
           }
 
           if (reply.name === 'userinfo') {
