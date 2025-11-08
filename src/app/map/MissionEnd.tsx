@@ -52,11 +52,14 @@ export default function MissionEnd({
   const isFullScreen = sheetPct === 1.0;
 
   // --- 拖曳事件處理 ---
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    dragStartY.current = e.clientY;
-    dragStartPct.current = sheetPct;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }, [sheetPct]);
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      dragStartY.current = e.clientY;
+      dragStartPct.current = sheetPct;
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    },
+    [sheetPct]
+  );
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (dragStartY.current === null) return;
@@ -141,7 +144,7 @@ export default function MissionEnd({
               恭喜！
             </h2>
             <p className="text-lg font-semibold text-[#000000]">
-              任務包 {missionName} 已全部達成！
+              任務 {missionName} 已全部達成！
             </p>
           </div>
 

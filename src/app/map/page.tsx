@@ -11,6 +11,7 @@ import useQuest from "./useQuest";
 import { useAuth } from "@/contexts/AuthContext";
 import useUserPoints from "./useUserPoints";
 import MissionEnd from "./MissionEnd";
+import moment from "moment";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false,
@@ -20,7 +21,6 @@ export default function MapPage() {
   const router = useRouter();
   // Get user ID from local storage
   const { userId } = useAuth();
-  const [showEnd, setShowEnd] = useState(true);
 
   // Selected mission state
   const [selectedMissionId, setSelectedMissionId] = useState("1");
@@ -52,6 +52,10 @@ export default function MapPage() {
     }
   }, [userId, selectedMissionId, startQuest]);
 
+  const showEnd = quest?.isFinished;
+
+  const duration = moment.duration(quest?.timeSpent || "");
+
   return (
     <div className="relative overflow-hidden">
       <Map
@@ -79,12 +83,11 @@ export default function MapPage() {
       ) : (
         <MissionEnd
           onPrimaryAction={() => {
-            setShowEnd(false);
             console.log("View My Points clicked");
           }}
           missionName={selectedMission?.name || ""}
           // totalPoints={150} /* Placeholder */
-          time={"1hr36min"} /* Placeholder */
+          time={`${duration.minutes()}:${duration.seconds()}`} /* Placeholder */
           distance={3200} /* Placeholder */
           completedLocations={
             selectedMission?.locations

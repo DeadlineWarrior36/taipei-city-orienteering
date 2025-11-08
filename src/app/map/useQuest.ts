@@ -11,6 +11,8 @@ export type QuestData = {
   completedLocationIds: string[];
   points: number;
   distance: number;
+  timeSpent: string;
+  isFinished?: boolean;
 };
 
 export function useQuest({
@@ -41,6 +43,8 @@ export function useQuest({
         completedLocationIds: [],
         points: 0,
         distance: 0,
+        timeSpent: "0S",
+        isFinished: false,
       });
       setIsRecording(true);
     } catch (err) {
@@ -70,6 +74,8 @@ export function useQuest({
                       completedLocationIds: res.completed_location_ids,
                       points: res.points,
                       distance: res.distance,
+                      timeSpent: res.time_spent,
+                      isFinished: res.is_finished,
                     }
                   : null
               );

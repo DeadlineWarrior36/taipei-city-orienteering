@@ -611,6 +611,13 @@
   dependencies:
     "@types/geojson" "*"
 
+"@types/moment@^2.13.0":
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/@types/moment/-/moment-2.13.0.tgz#604ebd189bc3bc34a1548689404e61a2a4aac896"
+  integrity sha512-DyuyYGpV6r+4Z1bUznLi/Y7HpGn4iQ4IVcGn8zrr1P4KotKLdH0sbK1TFR6RGyX6B+G8u83wCzL+bpawKU/hdQ==
+  dependencies:
+    moment "*"
+
 "@types/node@*", "@types/node@^20":
   version "20.19.24"
   resolved "https://registry.npmjs.org/@types/node/-/node-20.19.24.tgz"
@@ -1130,6 +1137,11 @@ data-view-byte-offset@^1.0.1:
     call-bound "^1.0.2"
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
+
+dayjs-plugin-duration@^0.0.1-security:
+  version "0.0.1-security"
+  resolved "https://registry.yarnpkg.com/dayjs-plugin-duration/-/dayjs-plugin-duration-0.0.1-security.tgz#ddf707253c7ebf5d603248ceffd4cb46d42bba7a"
+  integrity sha512-9aWtXq+qowRpOHOwcZyFp6ngExbjU0bgvKspufNPdCyO+i/FKNykFtwqap4JrlEm76LNXQxAMA9Xhawf9PfVIw==
 
 debug@^3.2.7:
   version "3.2.7"
@@ -2257,6 +2269,11 @@ minimist@^1.2.0, minimist@^1.2.6:
   version "1.2.8"
   resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"
   integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
+
+moment@*, moment@^2.30.1:
+  version "2.30.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
+  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
 
 ms@^2.1.1, ms@^2.1.3:
   version "2.1.3"
