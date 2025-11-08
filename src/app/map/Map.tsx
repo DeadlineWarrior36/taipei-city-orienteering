@@ -1,19 +1,32 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import { Coordinate } from "@/types/api";
 import { useGeolocated } from "react-geolocated";
+import { useState } from "react";
 import MissionDisplay from "./MissionDisplay";
+import LocationsList from "./LocationsList";
+
+// Convert locations to proper format for LocationsList
+const convertLocationsForList = (locations?: Coordinate[]) => {
+  if (!locations) return [];
+  return locations.map((loc) => ({
+    lat: loc.lat,
+    lnt: loc.lnt, // Note: API uses lnt instead of lng
+    timestamp: Date.now(),
+  }));
+};
 
 export default function Map({
   locations,
   showMission = true,
+  title,
 }: {
   path?: Coordinate[];
   locations?: Coordinate[];
   showMission?: boolean;
+  title?: string;
 }) {
   const { coords } = useGeolocated({
     positionOptions: { enableHighAccuracy: false },
@@ -27,10 +40,8 @@ export default function Map({
 
   return (
     <div className="relative">
-      {/* 右上角狀態 pill（便於偵錯） */}
-
       <MapContainer
-        center={[centerCoords?.latitude, centerCoords?.longitude]}
+        center={[centerCoords.latitude, centerCoords.longitude]}
         zoom={13}
         scrollWheelZoom
         preferCanvas
@@ -42,18 +53,7 @@ export default function Map({
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
-        {/* 我的藍點 + 精度圈（拿到 fix 才顯示） */}
-
-        {/* <Circle
-          center={[centerCoords.latitude, centerCoords.longitude]}
-          // radius={80}
-          pathOptions={{
-            color: "#2563eb",
-            weight: 1,
-            opacity: 0.25,
-            fillOpacity: 0.1,
-          }}
-        /> */}
+        {/* My location */}
         <CircleMarker
           center={[centerCoords.latitude, centerCoords.longitude]}
           radius={7}
@@ -62,19 +62,18 @@ export default function Map({
           <Popup>我的位置</Popup>
         </CircleMarker>
 
-        {/* 任務點（不把使用者點塞進自動縮放） */}
-        {locations?.map((loc, i) => (
-          <CircleMarker
-            key={`${loc.lat}-${loc.lnt}-${i}`}
-            center={[loc.lat, loc.lnt]}
-            radius={8}
-            pathOptions={{ color: "#5AB4C5", weight: 3 }}
-          >
-            <Popup>任務點 #{i + 1}</Popup>
-          </CircleMarker>
-        ))}
+        {/* Mission display */}
         <MissionDisplay locations={locations} show={showMission} />
       </MapContainer>
+
+      {/* Toggle list button */}
+
+      {/* Locations list */}
+      <LocationsList
+        locations={convertLocationsForList(locations)}
+        show={true}
+        title={title || "任務點列表"}
+      />
     </div>
   );
 }
