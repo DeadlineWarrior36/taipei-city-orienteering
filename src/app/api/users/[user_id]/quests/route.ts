@@ -4,7 +4,7 @@ import { createQuest } from '@/lib/db/quests';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ user_id: string }> }
+  _context: { params: Promise<{ user_id: string }> }
 ) {
   try {
     const user_id = request.headers.get('x-user-id');

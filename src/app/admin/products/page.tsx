@@ -284,7 +284,11 @@ export default function ProductsAdminPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            editingProduct ? handleUpdate() : handleCreate();
+            if (editingProduct) {
+              handleUpdate();
+            } else {
+              handleCreate();
+            }
           }}
           className="space-y-4"
         >

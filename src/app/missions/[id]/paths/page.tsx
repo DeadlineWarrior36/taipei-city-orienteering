@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, Coins } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import { Mission, MissionPathsResponse, PathData } from '@/types/api';
+import { Mission, MissionPathsResponse } from '@/types/api';
 import MissionPathsMap from './MissionPathsMap';
 import useUserPoints from '@/app/map/useUserPoints';
 
@@ -27,7 +27,7 @@ export default function MissionPathsPage() {
 
   // Get user ID from localStorage
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') || '' : '';
-  const { points } = useUserPoints(userId);
+  useUserPoints(userId);
 
   // Get current user's quest ID from URL
   useEffect(() => {

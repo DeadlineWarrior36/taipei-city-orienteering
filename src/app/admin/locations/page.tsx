@@ -212,7 +212,11 @@ export default function LocationsAdminPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            editingLocation ? handleUpdate() : handleCreate();
+            if (editingLocation) {
+              handleUpdate();
+            } else {
+              handleCreate();
+            }
           }}
           className="space-y-4"
         >

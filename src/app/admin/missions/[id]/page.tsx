@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -40,12 +40,7 @@ export default function MissionLocationsPage({
   const [showModal, setShowModal] = useState(false);
   const [selectedLocationId, setSelectedLocationId] = useState("");
 
-  useEffect(() => {
-    document.title = "任務景點管理 - 定向台北";
-    fetchData();
-  }, [missionId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [locationsRes, allLocationsRes] = await Promise.all([
         fetch(`/api/admin/missions/${missionId}/locations`),
@@ -66,7 +61,12 @@ export default function MissionLocationsPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [missionId]);
+
+  useEffect(() => {
+    document.title = "任務景點管理 - 定向台北";
+    fetchData();
+  }, [fetchData]);
 
   const handleAddLocation = async () => {
     if (!selectedLocationId) return;

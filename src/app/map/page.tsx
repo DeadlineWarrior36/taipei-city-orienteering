@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Coins, Navigation, GripVertical, CheckCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -84,7 +84,10 @@ export default function MapPage() {
   }, [selectedMission]);
 
   // Get display locations (reordered or original)
-  const displayLocations = reorderedLocations.length > 0 ? reorderedLocations : selectedMission?.locations || [];
+  const displayLocations = useMemo(() =>
+    reorderedLocations.length > 0 ? reorderedLocations : selectedMission?.locations || [],
+    [reorderedLocations, selectedMission?.locations]
+  );
 
   // Track completed locations to show notification
   const [lastCompletedCount, setLastCompletedCount] = useState(0);

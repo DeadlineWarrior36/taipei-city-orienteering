@@ -19,7 +19,7 @@ interface DataTableProps<T> {
   actions?: (item: T) => React.ReactNode;
 }
 
-export default function DataTable<T extends Record<string, any>>({
+export default function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   searchable = true,

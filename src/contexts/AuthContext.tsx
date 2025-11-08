@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { AuthContextType, TPBridgeMessage } from '@/types/auth';
 import { apiClient } from '@/lib/api-client';
 
@@ -13,37 +13,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!userId && !isAuthenticating && !showLoginModal) {
-      handleAutoLogin();
-    }
-  }, [userId, isAuthenticating, showLoginModal]);
-
-  const handleAutoLogin = async () => {
-    setIsAuthenticating(true);
-    try {
-      const storedToken = localStorage.getItem('auth_token');
-      const storedUserId = localStorage.getItem('user_id');
-
-      if (storedToken && storedUserId) {
-        setUserId(storedUserId);
-        setToken(storedToken);
-        apiClient.setToken(storedToken);
-        apiClient.setUserId(storedUserId);
-        setLoginError(null);
-      } else {
-        await login();
-        setLoginError(null);
-      }
-    } catch (err) {
-      setLoginError(err instanceof Error ? err.message : '驗證失敗');
-      setShowLoginModal(true);
-    } finally {
-      setIsAuthenticating(false);
-    }
-  };
-
-  const login = async () => {
+  const login = useCallback(async () => {
     return new Promise<void>((resolve, reject) => {
       if (typeof window === 'undefined') {
         reject(new Error('Window not available'));
@@ -103,7 +73,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         '*'
       );
     });
-  };
+  }, []);
+
+  const handleAutoLogin = useCallback(async () => {
+    setIsAuthenticating(true);
+    try {
+      const storedToken = localStorage.getItem('auth_token');
+      const storedUserId = localStorage.getItem('user_id');
+
+      if (storedToken && storedUserId) {
+        setUserId(storedUserId);
+        setToken(storedToken);
+        apiClient.setToken(storedToken);
+        apiClient.setUserId(storedUserId);
+        setLoginError(null);
+      } else {
+        await login();
+        setLoginError(null);
+      }
+    } catch (err) {
+      setLoginError(err instanceof Error ? err.message : '驗證失敗');
+      setShowLoginModal(true);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  }, [login]);
+
+  useEffect(() => {
+    if (!userId && !isAuthenticating && !showLoginModal) {
+      handleAutoLogin();
+    }
+  }, [userId, isAuthenticating, showLoginModal, handleAutoLogin]);
 
   const logout = () => {
     setUserId(null);

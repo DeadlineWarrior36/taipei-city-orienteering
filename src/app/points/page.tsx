@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Coins, ChevronLeft, RefreshCw } from "lucide-react";
+import { Coins, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import useUserPoints from "../map/useUserPoints";
@@ -9,7 +9,7 @@ import { apiClient } from "@/lib/api-client";
 import type { PointsTransaction } from "@/types/api";
 
 export default function PointsPage() {
-  const router = useRouter();
+  useRouter();
 
   // Set page title
   useEffect(() => {

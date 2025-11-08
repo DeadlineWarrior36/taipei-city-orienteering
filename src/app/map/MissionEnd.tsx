@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 
 /** 已完成地點的資料結構 */
 interface CompletedLocation {
@@ -42,7 +42,7 @@ export default function MissionEnd({
   completedLocations,
 }: MissionEndProps) {
   // --- 拖曳狀態管理 ---
-  const snaps = [0.5, 1.0]; // 50% (半) 和 100% (全) 視窗高度
+  const snaps = useMemo(() => [0.5, 1.0], []); // 50% (半) 和 100% (全) 視窗高度
   const [sheetPct, setSheetPct] = useState(snaps[0]); // 初始為半展開 (50%)
   const dragStartY = useRef<number | null>(null);
   const dragStartPct = useRef<number>(sheetPct);

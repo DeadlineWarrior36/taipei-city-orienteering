@@ -7,7 +7,7 @@ const SHEET_OPEN_Y = 90; // px from top when opened
 const LaunchPage: React.FC = () => {
   // closedY is calculated from bottom: viewport height - visible portion
   // Use safe fallbacks for SSR and populate real values on mount.
-  const [closedY, setClosedY] = useState<number>(500);
+  const [closedY] = useState<number>(500);
 
   const [sheetY, setSheetY] = useState<number>(500);
   const dragRef = useRef({

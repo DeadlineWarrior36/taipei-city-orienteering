@@ -238,7 +238,11 @@ export default function MissionsAdminPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            editingMission ? handleUpdate() : handleCreate();
+            if (editingMission) {
+              handleUpdate();
+            } else {
+              handleCreate();
+            }
           }}
           className="space-y-4"
         >

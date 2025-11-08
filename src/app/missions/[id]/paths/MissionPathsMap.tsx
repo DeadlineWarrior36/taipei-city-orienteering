@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { LatLngExpression, LatLngBounds } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Mission, PathData } from '@/types/api';
+import { Mission } from '@/types/api';
 
 interface MissionPathsMapProps {
   mission: Mission;
