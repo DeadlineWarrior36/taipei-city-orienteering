@@ -1,13 +1,7 @@
 "use client";
 
+import { Mission } from "@/types/api";
 import { useEffect, useRef, useState } from "react";
-
-type Mission = {
-  id: string | number;
-  name: string;
-  description: string;
-  locations: { latitude: number; longitude: number }[];
-};
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
@@ -27,7 +21,7 @@ export default function MissionPager({
   const rowRef = useRef<HTMLDivElement>(null);
 
   // ---- Bottom Sheet 互動狀態 ----
-  const snaps = [0.3, 0.6, 0.9];          // 30% / 60% / 90% 高
+  const snaps = [0.3, 0.6, 0.9]; // 30% / 60% / 90% 高
   const [sheetPct, setSheetPct] = useState(0.45); // 初始 45% 高
   const dragStartY = useRef<number | null>(null);
   const dragStartPct = useRef<number>(sheetPct);
@@ -55,7 +49,10 @@ export default function MissionPager({
     cards.forEach((c, i) => {
       const mid = c.offsetLeft + c.offsetWidth / 2;
       const d = Math.abs(center - mid);
-      if (d < min) { min = d; best = i; }
+      if (d < min) {
+        min = d;
+        best = i;
+      }
     });
     if (best !== index) onIndexChange(best);
   };
@@ -95,7 +92,7 @@ export default function MissionPager({
       >
         <button
           onClick={onStart}
-          className="pointer-events-auto rounded-full px-6 py-3 text-white font-semibold shadow-xl active:scale-95 transition-all"
+          className="pointer-events-auto rounded-full px-6 py-3 text-white font-semibold shadow-xl active:scale-95 transition-all cursor-pointer"
           style={{ background: "var(--brand, #5AB4C5)" }}
           aria-label="選定這個任務"
         >
@@ -127,7 +124,11 @@ export default function MissionPager({
               {missions.map((_, i) => (
                 <span
                   key={i}
-                  className={`h-1.5 w-1.5 rounded-full ${i===index ? "bg-[color:var(--brand,#5AB4C5)]" : "bg-neutral-300"}`}
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    i === index
+                      ? "bg-[color:var(--brand,#5AB4C5)]"
+                      : "bg-neutral-300"
+                  }`}
                 />
               ))}
             </div>
@@ -144,7 +145,11 @@ export default function MissionPager({
                   onClick={() => onIndexChange(i)}
                   className={`snap-center shrink-0 h-[calc(100%-8px)]
                               w-[92vw] max-w-[720px] rounded-3xl overflow-hidden
-                              ${i===index ? "ring-2 ring-[color:var(--brand,#5AB4C5)]/60" : "ring-1 ring-neutral-200/60"}
+                              ${
+                                i === index
+                                  ? "ring-2 ring-[color:var(--brand,#5AB4C5)]/60"
+                                  : "ring-1 ring-neutral-200/60"
+                              }
                               bg-white shadow-lg flex flex-col cursor-pointer`}
                 >
                   {/* Header */}
@@ -152,22 +157,29 @@ export default function MissionPager({
                     className="px-6 py-4 text-white flex-shrink-0"
                     style={{ background: "var(--brand, #5AB4C5)" }}
                   >
-                    <div className="text-xs/5 opacity-95 tracking-wide">選擇任務</div>
-                    <div className="text-xl sm:text-2xl font-extrabold tracking-wide">{m.name}</div>
+                    <div className="text-xs/5 opacity-95 tracking-wide">
+                      選擇任務
+                    </div>
+                    <div className="text-xl sm:text-2xl font-extrabold tracking-wide">
+                      {m.name}
+                    </div>
                   </div>
 
                   {/* Body */}
                   <div className="px-6 py-4 flex-grow overflow-y-auto">
-                    <p className="text-[15px] leading-relaxed text-neutral-700 mb-4">
+                    {/* <p className="text-[15px] leading-relaxed text-neutral-700 mb-4">
                       {m.description}
-                    </p>
+                    </p> */}
                     <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-sm overflow-hidden">
                       <div className="px-4 py-3 text-sm font-medium text-neutral-800 bg-neutral-50/60">
                         控制點（{m.locations.length}）
                       </div>
                       <ul className="divide-y divide-neutral-200">
                         {m.locations.map((_, j) => (
-                          <li key={j} className="px-4 py-3 flex items-start gap-3">
+                          <li
+                            key={j}
+                            className="px-4 py-3 flex items-start gap-3"
+                          >
                             <span
                               className="mt-0.5 grid h-6 w-6 place-items-center rounded-full text-xs font-semibold text-white"
                               style={{ background: "var(--brand, #5AB4C5)" }}
@@ -175,7 +187,9 @@ export default function MissionPager({
                               {j + 1}
                             </span>
                             <div className="flex-1">
-                              <div className="text-[15px] font-semibold">控制點 {j + 1}</div>
+                              <div className="text-[15px] font-semibold">
+                                控制點 {j + 1}
+                              </div>
                               <div className="text-xs text-neutral-600">
                                 目標：15 點・進入範圍即完成
                               </div>

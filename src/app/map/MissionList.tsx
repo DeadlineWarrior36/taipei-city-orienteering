@@ -6,7 +6,7 @@ export default function MissionList({ missions }: { missions: Mission[] }) {
       {missions.map((mission) => (
         <div
           key={mission.id}
-          className="border p-4 m-2 flex-none rounded shadow-md bg-amber-200 text-black w-64 "
+          className="border p-4 m-2 flex-none rounded shadow-md bg-amber-200 text-black w-64"
         >
           <h2 className="text-xl font-bold mb-2">{mission.name}</h2>
         </div>
