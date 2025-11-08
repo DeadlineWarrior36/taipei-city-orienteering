@@ -130,7 +130,7 @@ export default function MapPage() {
 
       <button
         onClick={() => router.push("/points")}
-        className="absolute top-20 right-4 z-5000 px-5 py-1.5 shadow-lg hover:shadow-xl transition-shadow active:scale-95"
+        className="absolute top-4 right-4 z-5000 px-5 py-1.5 shadow-lg hover:shadow-xl transition-shadow active:scale-95"
         style={{ backgroundColor: "#DBF1F5", borderRadius: "999px" }}
       >
         <div className="flex items-center gap-2">
