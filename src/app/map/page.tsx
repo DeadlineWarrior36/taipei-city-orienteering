@@ -148,16 +148,77 @@ export default function MapPage() {
       </button>
 
       {/* Quest controls */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-5000 p-4">
-        {isRecording && (
-          <button
-            onClick={endQuest}
-            className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
-          >
-            結束任務
-          </button>
-        )}
-      </div>
+      {isRecording && (
+        <div className="fixed bottom-0 left-0 right-0 z-5000 h-80 backdrop-blur-lg shadow-[0_-8px_24px_rgba(0,0,0,0.2)]" style={{ background: "rgba(219, 68, 54, 0.95)" }}>
+          <div className="h-full flex flex-col px-6 py-5">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <div className="text-3xl font-bold text-white mb-1">
+                  正在前往...
+                </div>
+                <div className="text-sm text-white/80">
+                  {quest?.completedLocationIds?.length || 0} / {selectedMission?.locations.length || 0} 已完成
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-white/80 mb-1">任務</div>
+                <div className="text-base font-bold text-white">
+                  {selectedMission?.name}
+                </div>
+              </div>
+            </div>
+
+            {/* 目的地列表 */}
+            <div className="flex-1 bg-white rounded-2xl overflow-hidden shadow-lg">
+              <div className="h-full overflow-y-auto px-4 py-3">
+                <ul className="space-y-2">
+                  {selectedMission?.locations.map((loc, j) => {
+                    const isCompleted = quest?.completedLocationIds?.includes(loc.id);
+                    return (
+                      <li
+                        key={loc.id}
+                        className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                          isCompleted ? "bg-green-50" : "bg-neutral-50"
+                        }`}
+                      >
+                        <span
+                          className={`grid h-7 w-7 place-items-center rounded-full text-xs font-semibold shrink-0 ${
+                            isCompleted
+                              ? "bg-green-500 text-white"
+                              : "bg-neutral-300 text-neutral-600"
+                          }`}
+                        >
+                          {isCompleted ? "✓" : j + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className={`text-sm font-semibold truncate ${
+                              isCompleted
+                                ? "text-green-700 line-through"
+                                : "text-neutral-800"
+                            }`}
+                          >
+                            {loc.name}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+
+            {/* 結束按鈕 */}
+            <button
+              onClick={endQuest}
+              className="mt-4 w-full bg-white text-red-600 px-6 py-3 rounded-xl hover:bg-white/90 active:scale-95 transition-all shadow-lg font-bold"
+            >
+              結束任務
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

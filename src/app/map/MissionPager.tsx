@@ -75,7 +75,7 @@ export default function MissionPager({
                   onIndexChange(i);
                 }
               }}
-              className={`snap-center shrink-0 w-64 h-full rounded-2xl p-4 cursor-pointer transition-all
+              className={`snap-center shrink-0 w-64 h-full rounded-2xl p-4 cursor-pointer transition-all flex flex-col justify-center
                           ${
                             i === index
                               ? "bg-[color:var(--brand,#5AB4C5)] text-white shadow-lg scale-105"
@@ -163,9 +163,9 @@ export default function MissionPager({
             {/* 按鈕 */}
             <div className="px-6 py-4 border-t border-neutral-200/50">
               <button
-                onClick={() => {
+                onClick={async () => {
                   setShowDetails(false);
-                  onStart?.();
+                  await onStart?.();
                 }}
                 className="w-full rounded-full px-6 py-3 text-white font-semibold shadow-lg active:scale-95 transition-all"
                 style={{ background: "var(--brand, #5AB4C5)" }}

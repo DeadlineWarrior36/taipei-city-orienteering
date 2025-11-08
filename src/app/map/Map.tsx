@@ -144,12 +144,12 @@ export default function Map({
       </MapContainer>
 
       {/* Locations list */}
-      <LocationsList
+      {/* <LocationsList
         locations={locations}
         completedLocationIds={completedLocationIds}
         show={isRecording}
         title={title || "任務點列表"}
-      />
+      /> */}
 
       {/* Developer Controls - only in development */}
       {process.env.NODE_ENV === "development" && (
