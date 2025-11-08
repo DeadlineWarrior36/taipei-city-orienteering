@@ -14,6 +14,7 @@ import { useGeolocated } from "react-geolocated";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MissionDisplay from "./MissionDisplay";
 import LocationsList from "./LocationsList";
+import { Scan } from "lucide-react";
 
 export default function Map({
   locations,
@@ -117,6 +118,50 @@ export default function Map({
     return null;
   }
 
+  // helper component to fit bounds when resetting view
+  function FitBounds() {
+    const map = useMap();
+    useEffect(() => {
+      if (!map || !locations || locations.length === 0) return;
+
+      const bounds: [number, number][] = [];
+
+      // Add current position
+      if (coords.latitude && coords.longitude) {
+        bounds.push([coords.latitude, coords.longitude]);
+      }
+
+      // Add all location positions
+      locations.forEach((loc) => {
+        if (loc.lat && loc.lnt) {
+          bounds.push([loc.lat, loc.lnt]);
+        }
+      });
+
+      if (bounds.length > 0) {
+        // 底部面板高度 320px (h-80 = 20rem = 320px)
+        const bottomPanelHeight = 320;
+        map.fitBounds(bounds, {
+          paddingTopLeft: [20, 20],
+          paddingBottomRight: [20, bottomPanelHeight + 20]
+        });
+      }
+    }, [map]);
+    return null;
+  }
+
+  // State to track if we should fit bounds
+  const [shouldFitBounds, setShouldFitBounds] = useState(false);
+
+  // Function to reset map view to show all locations + current position
+  const handleResetView = () => {
+    if (onLocationClick) {
+      onLocationClick(null as any); // Clear selection
+    }
+    setShouldFitBounds(true);
+    setTimeout(() => setShouldFitBounds(false), 100);
+  };
+
   return (
     <div className="relative h-full">
       <MapContainer
@@ -142,10 +187,13 @@ export default function Map({
         </CircleMarker>
 
         {/* Recenter map when coordinates change */}
-        {coords && !selectedLocationId && <Recenter lat={coords.latitude} lnt={coords.longitude} />}
+        {coords && !selectedLocationId && !shouldFitBounds && <Recenter lat={coords.latitude} lnt={coords.longitude} />}
 
         {/* Pan to selected location */}
-        {selectedLocationId && <PanToLocation />}
+        {selectedLocationId && !shouldFitBounds && <PanToLocation />}
+
+        {/* Fit bounds to show all locations */}
+        {shouldFitBounds && <FitBounds />}
 
         {/* Draw recorded quest path */}
         {quest?.path && quest.path.length > 0 && (
@@ -166,6 +214,18 @@ export default function Map({
           onLocationClick={onLocationClick}
         />
       </MapContainer>
+
+      {/* Reset View Button - Show when a location is selected during recording */}
+      {isRecording && selectedLocationId && (
+        <button
+          onClick={handleResetView}
+          className="absolute bottom-[21.5rem] left-4 z-[5000] bg-white px-3 py-2 rounded-lg shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center gap-1.5"
+          style={{ backgroundColor: "var(--brand, #5AB4C5)" }}
+        >
+          <Scan className="h-4 w-4 text-white" strokeWidth={2.5} />
+          <span className="text-sm font-semibold text-white">顯示全部</span>
+        </button>
+      )}
 
       {/* Locations list */}
       {/* <LocationsList
