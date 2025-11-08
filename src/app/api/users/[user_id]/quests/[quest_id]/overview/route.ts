@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { QuestOverviewResponse } from '@/types/api';
-import { getQuestById, getQuestPaths } from '@/lib/db/quests';
+import { getQuestById, getQuestPaths, getCompletedLocationIds } from '@/lib/db/quests';
 
 export async function GET(
   request: NextRequest,
@@ -19,6 +19,7 @@ export async function GET(
     }
 
     const paths = await getQuestPaths(quest_id);
+    const completedLocationIds = await getCompletedLocationIds(quest_id, paths);
 
     const response: QuestOverviewResponse = {
       mission_id: quest.mission_id,
@@ -26,6 +27,7 @@ export async function GET(
       points: 0,
       time_spent: 'PT0S',
       distance: 0,
+      completed_location_ids: completedLocationIds,
     };
 
     return NextResponse.json(response, { status: 200 });

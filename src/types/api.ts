@@ -59,6 +59,7 @@ export interface SubmitQuestResponse {
   points: number;
   time_spent: string;
   distance: number;
+  completed_location_ids: string[];
 }
 
 export interface QuestOverviewResponse {
@@ -67,6 +68,7 @@ export interface QuestOverviewResponse {
   points: number;
   time_spent: string;
   distance: number;
+  completed_location_ids: string[];
 }
 
 export interface PathData {

@@ -93,6 +93,40 @@ export async function getQuestPaths(questId: string): Promise<Coordinate[]> {
   }));
 }
 
+/**
+ * 計算已完成的 location IDs
+ */
+export async function getCompletedLocationIds(
+  questId: string,
+  paths: Coordinate[]
+): Promise<string[]> {
+  const quest = await getQuestById(questId);
+  if (!quest) return [];
+
+  const mission = await getMissionById(quest.mission_id);
+  if (!mission || !mission.locations || mission.locations.length === 0) {
+    return [];
+  }
+
+  const completedIds: string[] = [];
+
+  for (const location of mission.locations) {
+    const hasVisited = paths.some((path) =>
+      isWithinDistance(
+        path,
+        { lnt: location.lnt, lat: location.lat },
+        QUEST_CONFIG.COMPLETION_DISTANCE_METERS
+      )
+    );
+
+    if (hasVisited) {
+      completedIds.push(location.id);
+    }
+  }
+
+  return completedIds;
+}
+
 async function checkMissionCompletion(
   questId: string,
   paths: Coordinate[]

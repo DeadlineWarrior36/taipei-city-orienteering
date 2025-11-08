@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SubmitQuestRequest, SubmitQuestResponse } from '@/types/api';
-import { getQuestById, updateQuestPaths } from '@/lib/db/quests';
+import { getQuestById, updateQuestPaths, getCompletedLocationIds } from '@/lib/db/quests';
 
 export async function POST(
   request: NextRequest,
@@ -25,10 +25,13 @@ export async function POST(
 
     await updateQuestPaths(quest_id, body.paths);
 
+    const completedLocationIds = await getCompletedLocationIds(quest_id, body.paths);
+
     const response: SubmitQuestResponse = {
       points: 0,
       time_spent: 'PT0S',
       distance: 0,
+      completed_location_ids: completedLocationIds,
     };
 
     return NextResponse.json(response, { status: 200 });
