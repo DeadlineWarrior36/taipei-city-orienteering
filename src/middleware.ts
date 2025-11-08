@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const { data: session, error } = await supabaseAdmin
+    const { data: session, error } = await supabaseAdmin()
       .from('user_sessions')
       .select('user_id, expires_at')
       .eq('token', token)

@@ -14,14 +14,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: existingUser } = await supabaseAdmin
+    const { data: existingUser } = await supabaseAdmin()
       .from('users')
       .select('id')
       .eq('id', body.id)
       .single();
 
     if (!existingUser) {
-      const { error: insertError } = await supabaseAdmin
+      const { error: insertError } = await supabaseAdmin()
         .from('users')
         .insert([{ id: body.id }]);
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    const { error: sessionError } = await supabaseAdmin
+    const { error: sessionError } = await supabaseAdmin()
       .from('user_sessions')
       .insert([{
         user_id: body.id,
