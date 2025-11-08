@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, Flame } from 'lucide-react';
+import { ChevronLeft, Coins } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import { Mission, MissionPathsResponse } from '@/types/api';
+import { Mission, MissionPathsResponse, PathData } from '@/types/api';
 import MissionPathsMap from './MissionPathsMap';
+import useUserPoints from '@/app/map/useUserPoints';
 
 export default function MissionPathsPage() {
   const params = useParams();
@@ -16,7 +17,22 @@ export default function MissionPathsPage() {
   const [pathsData, setPathsData] = useState<MissionPathsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [selectedPathId, setSelectedPathId] = useState<string | null>(null);
+  const [currentUserQuestId, setCurrentUserQuestId] = useState<string | null>(null);
+
+  // Get user ID from localStorage
+  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') || '' : '';
+  const { points } = useUserPoints(userId);
+
+  // Get current user's quest ID from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const questId = urlParams.get('questId');
+    if (questId) {
+      setCurrentUserQuestId(questId);
+      setSelectedPathId(questId); // Auto-select user's own path
+    }
+  }, [missionId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,133 +82,107 @@ export default function MissionPathsPage() {
     );
   }
 
-  const parseDuration = (isoDuration: string): string => {
-    const match = isoDuration.match(/PT(\d+)S/);
-    if (!match) return '未知';
-    const seconds = parseInt(match[1]);
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+  const parseDuration = (isoDuration: string): number => {
+    const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    const seconds = parseInt(match[3] || '0');
+    return hours * 3600 + minutes * 60 + seconds;
+  };
+
+  const formatDuration = (isoDuration: string): string => {
+    const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return '0:00';
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    const seconds = parseInt(match[3] || '0');
 
     if (hours > 0) {
-      return `${hours}小時 ${minutes}分鐘`;
-    } else if (minutes > 0) {
-      return `${minutes}分鐘 ${secs}秒`;
-    } else {
-      return `${secs}秒`;
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const formatDistance = (meters: number): string => {
-    if (meters >= 1000) {
-      return `${(meters / 1000).toFixed(2)} 公里`;
-    }
-    return `${meters.toFixed(0)} 公尺`;
-  };
-
-  const pathColors = [
-    '#2563eb', // blue
-    '#dc2626', // red
-    '#16a34a', // green
-    '#ea580c', // orange
-    '#9333ea', // purple
-    '#0891b2', // cyan
-    '#ca8a04', // yellow
-    '#db2777', // pink
-  ];
+  // Sort paths by time (fastest first)
+  const sortedPaths = pathsData?.paths ? [...pathsData.paths].sort((a, b) => {
+    return parseDuration(a.time_spent) - parseDuration(b.time_spent);
+  }) : [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#EDF8FA]">
-      {/* Header */}
-      <div className="bg-white px-4 py-3 shadow-sm flex items-center">
+    <div className="h-dvh flex flex-col min-h-0 bg-[#EDF8FA]">
+      {/* Header with back button and points */}
+      <div className="flex-none bg-white px-4 py-3 shadow-sm flex items-center justify-between">
         <button
           onClick={() => router.back()}
           className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
         >
           <ChevronLeft className="w-6 h-6 text-black" />
         </button>
-        <h1 className="text-lg font-semibold text-black ml-2">{mission.name}</h1>
+        <div className="flex items-center gap-2 bg-[var(--brand)] text-white px-4 py-2 rounded-full">
+          <Coins className="w-5 h-5" />
+          <span className="font-bold">{points}</span>
+        </div>
       </div>
 
-      <div className="flex-1 px-4 py-6">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-gray-600">
-            已完成路徑：{pathsData.paths.length} 條
-          </p>
-          <button
-            onClick={() => setShowHeatmap(!showHeatmap)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-              showHeatmap
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            <Flame className={`h-5 w-5 ${showHeatmap ? 'animate-pulse' : ''}`} />
-            {showHeatmap ? '熱點圖模式' : '路徑模式'}
-          </button>
-        </div>
+      {/* Map */}
+      <div className="flex-1 min-h-0">
+        <MissionPathsMap
+          mission={mission}
+          paths={pathsData.paths}
+          selectedPathId={selectedPathId}
+        />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Map Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="h-[600px]">
-                <MissionPathsMap
-                  mission={mission}
-                  paths={pathsData.paths}
-                  pathColors={pathColors}
-                  showHeatmap={showHeatmap}
-                />
+      {/* Bottom horizontal path list */}
+      <div
+        className="flex-none h-40 backdrop-blur-lg border-t border-white/30 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] overflow-hidden"
+        style={{ background: "rgba(219, 241, 245, 0.85)" }}
+      >
+        <div className="h-full overflow-x-auto overflow-y-hidden px-4 py-4">
+          <div className="flex gap-3 h-full">
+            {sortedPaths.length === 0 ? (
+              <div className="flex items-center justify-center w-full text-gray-500">
+                目前還沒有完成記錄
               </div>
-            </div>
-          </div>
+            ) : (
+              sortedPaths.map((path, index) => {
+                const isCurrentUser = path.id === currentUserQuestId;
+                const rank = index + 1;
 
-          {/* Paths List Section */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">完成記錄</h2>
-
-              {pathsData.paths.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">目前還沒有完成記錄</p>
-              ) : (
-                <div className="space-y-4 max-h-[530px] overflow-y-auto">
-                  {pathsData.paths.map((path, index) => (
-                    <div
-                      key={path.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: pathColors[index % pathColors.length] }}
-                        />
-                        <h3 className="font-semibold text-gray-800">
-                          路徑 #{index + 1}
-                        </h3>
+                return (
+                  <button
+                    key={path.id}
+                    onClick={() => setSelectedPathId(selectedPathId === path.id ? null : path.id)}
+                    className={`flex-none w-80 h-full rounded-xl p-4 transition-all ${
+                      selectedPathId === path.id
+                        ? 'bg-white shadow-lg scale-105 border-2 border-[var(--brand)]'
+                        : isCurrentUser
+                        ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-300 shadow-md'
+                        : 'bg-white/80 hover:bg-white hover:shadow-md'
+                    }`}
+                  >
+                    <div className="flex flex-col h-full justify-between">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-base font-bold ${isCurrentUser ? 'text-blue-600' : 'text-gray-800'}`}>
+                          {isCurrentUser && rank === 1 ? '🎉 新紀錄！' : isCurrentUser ? `👤 第 ${rank} 名` : rank === 1 ? '🏆 最快紀錄' : `第 ${rank} 名`}
+                        </span>
                       </div>
-
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p>
-                          <span className="font-medium">距離：</span>
-                          {formatDistance(path.distance)}
-                        </p>
-                        <p>
-                          <span className="font-medium">時間：</span>
-                          {parseDuration(path.time_spent)}
-                        </p>
-                        <p>
-                          <span className="font-medium">點數：</span>
-                          {path.path.length} 個座標點
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">
-                          ID: {path.id}
-                        </p>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-3xl font-bold ${isCurrentUser ? 'text-blue-600' : 'text-gray-800'}`}>
+                            {formatDuration(path.time_spent)}
+                          </span>
+                        </div>
+                        <div className="text-base font-semibold text-gray-800">
+                          {(path.distance / 1000).toFixed(2)} km
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

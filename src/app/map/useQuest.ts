@@ -102,9 +102,9 @@ export function useQuest({
   const endQuest = useCallback(async () => {
     if (!quest || !questId) return;
     setIsRecording(false);
-    // Clear quest state to remove markers and path from map
+    // Clear quest state to remove markers and path from map, but keep questId for navigation
     setQuest(null);
-    setQuestId(null);
+    // Don't clear questId - we need it for navigating to paths page
   }, [quest, questId]);
 
   return {

@@ -39,7 +39,7 @@ export default function MapPage() {
   );
 
   // Quest handling
-  const { isRecording, startQuest, logPath, endQuest, quest } = useQuest({
+  const { isRecording, startQuest, logPath, endQuest, quest, questId } = useQuest({
     userId: userId ?? "",
     missionId: selectedMissionId,
   });
@@ -426,7 +426,7 @@ export default function MapPage() {
 
             <div className="space-y-3">
               <button
-                onClick={() => router.push(`/missions/${selectedMissionId}/paths`)}
+                onClick={() => router.push(`/missions/${selectedMissionId}/paths?questId=${questId}`)}
                 className="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-90 active:scale-95"
                 style={{ background: "var(--brand, #5AB4C5)" }}
               >
