@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { QuestOverviewResponse } from '@/types/api';
+import { getQuestById, getQuestPaths } from '@/lib/db/quests';
 
 export async function GET(
   request: NextRequest,
@@ -8,20 +9,28 @@ export async function GET(
   try {
     const { user_id, quest_id } = await params;
 
+    const quest = await getQuestById(quest_id);
+    if (!quest) {
+      return NextResponse.json({ error: 'Quest not found' }, { status: 404 });
+    }
+
+    if (quest.user_id !== user_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    const paths = await getQuestPaths(quest_id);
+
     const response: QuestOverviewResponse = {
-      mission_id: 'mission_1',
-      path: [
-        { lnt: 121.5654, lat: 25.0330 },
-        { lnt: 121.5200, lat: 25.0478 },
-        { lnt: 121.5100, lat: 25.0400 },
-      ],
-      points: 45,
-      time_spent: 'PT1H30M',
-      distance: 5.2,
+      mission_id: quest.mission_id,
+      path: paths,
+      points: 0,
+      time_spent: 'PT0S',
+      distance: 0,
     };
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    console.error('Error fetching quest overview:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
