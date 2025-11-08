@@ -4,6 +4,7 @@ export interface Location {
   lnt: number;
   lat: number;
   point: number;
+  description?: string;
 }
 
 export interface Coordinate {

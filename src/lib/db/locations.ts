@@ -7,6 +7,7 @@ export interface LocationRecord {
   lnt: number;
   lat: number;
   point: number;
+  description?: string;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +31,7 @@ export async function getLocations(params?: {
     lnt: record.lnt,
     lat: record.lat,
     point: record.point,
+    description: record.description,
   }));
 }
 
@@ -55,5 +57,6 @@ export async function getLocationById(id: string): Promise<Location | null> {
     lnt: data.lnt,
     lat: data.lat,
     point: data.point,
+    description: data.description,
   };
 }

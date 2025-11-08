@@ -49,7 +49,8 @@ export async function getMissions(): Promise<Mission[]> {
         name,
         lnt,
         lat,
-        point
+        point,
+        description
       )
     `)
     .in('mission_id', missionIds)
@@ -70,6 +71,7 @@ export async function getMissions(): Promise<Mission[]> {
         lnt: ml.locations.lnt,
         lat: ml.locations.lat,
         point: ml.locations.point,
+        description: ml.locations.description,
       })),
   }));
 }
@@ -102,7 +104,8 @@ export async function getMissionById(id: string): Promise<Mission | null> {
         name,
         lnt,
         lat,
-        point
+        point,
+        description
       )
     `)
     .eq('mission_id', id)
@@ -121,6 +124,7 @@ export async function getMissionById(id: string): Promise<Mission | null> {
       lnt: ml.locations.lnt,
       lat: ml.locations.lat,
       point: ml.locations.point,
+      description: ml.locations.description,
     })),
   };
 }
