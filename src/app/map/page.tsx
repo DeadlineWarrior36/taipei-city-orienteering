@@ -2,11 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
+import { Coins } from "lucide-react";
 
 import useMissionsList from "./useMissionsList";
 import MissionPager from "./MissionPager";
 import useQuest from "./useQuest";
 import { useAuth } from "@/contexts/AuthContext";
+import useUserPoints from "./useUserPoints";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false,
@@ -30,6 +32,8 @@ export default function MapPage() {
     userId: userId ?? "",
     missionId: selectedMissionId,
   });
+
+  const { points, loading, error } = useUserPoints(userId);
 
   // Start quest handler
   const handleStartQuest = useCallback(async () => {
@@ -65,6 +69,21 @@ export default function MapPage() {
           onStart={handleStartQuest}
         />
       )}
+
+      <div className="absolute top-20 right-4 z-5000">
+        <div className="px-5 py-1.5 shadow-lg" style={{ backgroundColor: '#DBF1F5', borderRadius: '999px' }}>
+          <div className="flex items-center gap-2">
+            <Coins className="w-5 h-5 text-black" />
+            {loading ? (
+              <span className="font-bold text-base text-black">...</span>
+            ) : error ? (
+              <span className="font-bold text-base text-red-500">!</span>
+            ) : (
+              <span className="font-bold text-base text-black">{points}</span>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Quest controls */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-5000 p-4">

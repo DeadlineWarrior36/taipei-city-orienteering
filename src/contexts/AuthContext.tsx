@@ -45,6 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           setUserId(userId);
           setToken(data.token);
+          apiClient.setToken(data.token);
+          apiClient.setUserId(userId);
           localStorage.setItem('auth_token', data.token);
           localStorage.setItem('user_id', userId);
 
@@ -95,6 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUserId(null);
     setToken(null);
+    apiClient.setToken(null);
+    apiClient.setUserId(null);
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_id');
   };

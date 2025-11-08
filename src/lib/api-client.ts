@@ -11,10 +11,12 @@ import type {
   SubmitQuestResponse,
   QuestOverviewResponse,
   MissionPathsResponse,
+  UserResponse,
 } from '@/types/api';
 
 class ApiClient {
   private token: string | null = null;
+  private userId: string | null = null;
   private baseUrl: string;
 
   constructor() {
@@ -23,6 +25,10 @@ class ApiClient {
 
   setToken(token: string | null) {
     this.token = token;
+  }
+
+  setUserId(userId: string | null) {
+    this.userId = userId;
   }
 
   private async request<T>(
@@ -35,6 +41,10 @@ class ApiClient {
 
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    if (this.userId) {
+      headers['x-user-id'] = this.userId;
     }
 
     const url = `${this.baseUrl}${endpoint}`;
@@ -111,6 +121,10 @@ class ApiClient {
 
   async getQuestOverview(userId: string, questId: string): Promise<QuestOverviewResponse> {
     return this.get<QuestOverviewResponse>(`/users/${userId}/quests/${questId}/overview`);
+  }
+
+  async getUserInfo(userId: string): Promise<UserResponse> {
+    return this.get<UserResponse>(`/users/${userId}`);
   }
 }
 
