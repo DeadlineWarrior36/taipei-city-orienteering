@@ -7,6 +7,7 @@ import useMissionsList from "./useMissionsList";
 import MissionPager from "./MissionPager";
 import useQuest from "./useQuest";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false,
@@ -14,7 +15,7 @@ const Map = dynamic(() => import("./Map"), {
 
 export default function MapPage() {
   // Get user ID from local storage
-  const [userId] = useLocalStorage("userId", "");
+  const { userId } = useAuth();
 
   // Selected mission state
   const [selectedMissionId, setSelectedMissionId] = useState("1");
@@ -27,7 +28,7 @@ export default function MapPage() {
 
   // Quest handling
   const { isRecording, startQuest, endQuest } = useQuest({
-    userId,
+    userId: userId ?? "",
     missionId: selectedMissionId,
   });
 
