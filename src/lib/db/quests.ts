@@ -22,8 +22,18 @@ export interface QuestPathRecord {
 export async function createQuest(
   userId: string,
   missionId: string
-): Promise<string> {
+): Promise<string | null> {
   const supabase = supabaseAdmin();
+
+  const { data: mission, error: missionError } = await supabase
+    .from('missions')
+    .select('id')
+    .eq('id', missionId)
+    .single();
+
+  if (missionError || !mission) {
+    return null;
+  }
 
   const { data, error } = await supabase
     .from('quests')

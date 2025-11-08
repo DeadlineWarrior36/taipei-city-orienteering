@@ -16,6 +16,10 @@ export async function POST(
 
     const questId = await createQuest(user_id, body.mission_id);
 
+    if (!questId) {
+      return NextResponse.json({ error: 'Mission not found' }, { status: 404 });
+    }
+
     const response: CreateQuestResponse = {
       id: questId,
     };
