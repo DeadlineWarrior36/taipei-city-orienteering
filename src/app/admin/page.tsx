@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import AdminLayout from "@/components/admin/AdminLayout";
 import StatCard from "@/components/admin/StatCard";
 import {
@@ -149,34 +150,34 @@ export default function AdminDashboard() {
           <h2 className="text-2xl font-bold mb-2">快速操作</h2>
           <p className="mb-6 text-white/90">選擇一個功能開始管理</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a
+            <Link
               href="/admin/missions"
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg p-4 text-center transition-colors"
             >
               <Map className="w-8 h-8 mx-auto mb-2" />
               <p className="font-medium">任務管理</p>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/locations"
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg p-4 text-center transition-colors"
             >
               <MapPin className="w-8 h-8 mx-auto mb-2" />
               <p className="font-medium">景點管理</p>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/products"
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg p-4 text-center transition-colors"
             >
               <Package className="w-8 h-8 mx-auto mb-2" />
               <p className="font-medium">商品管理</p>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/users"
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg p-4 text-center transition-colors"
             >
               <Users className="w-8 h-8 mx-auto mb-2" />
               <p className="font-medium">使用者管理</p>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
