@@ -162,25 +162,22 @@ export async function updateQuestPaths(
 ): Promise<void> {
   const supabase = supabaseAdmin();
 
-  const { data: existingPaths, error: fetchError } = await supabase
+  const { error: deleteError } = await supabase
     .from('quest_paths')
-    .select('sequence_order')
-    .eq('quest_id', questId)
-    .order('sequence_order', { ascending: false })
-    .limit(1);
+    .delete()
+    .eq('quest_id', questId);
 
-  if (fetchError) {
-    throw new Error(`Failed to fetch existing paths: ${fetchError.message}`);
+  if (deleteError) {
+    throw new Error(`Failed to delete existing paths: ${deleteError.message}`);
   }
 
-  const lastSequence = existingPaths?.[0]?.sequence_order ?? -1;
 
-  if (paths.length > lastSequence + 1) {
-    const newPaths = paths.slice(lastSequence + 1).map((coord, index) => ({
+  if (paths.length > 0) {
+    const newPaths = paths.map((coord, index) => ({
       quest_id: questId,
       lnt: coord.lnt,
       lat: coord.lat,
-      sequence_order: lastSequence + 1 + index,
+      sequence_order: index,
     }));
 
     const { error: insertError } = await supabase
