@@ -25,28 +25,35 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const paths = await getQuestPaths(quest_id);
-    const completedLocationIds = await getCompletedLocationIds(quest_id, paths);
+    // Fetch paths and mission in parallel
+    const [paths, mission] = await Promise.all([
+      getQuestPaths(quest_id),
+      getMissionById(quest.mission_id)
+    ]);
 
-    // 計算距離（公尺）
+    if (!mission) {
+      return NextResponse.json({ error: 'Mission not found' }, { status: 404 });
+    }
+
+    // Calculate completed locations (no DB query)
+    const completedLocationIds = getCompletedLocationIds(paths, mission);
+
+    // Calculate distance
     const distance = calculatePathDistance(paths);
 
-    // 計算時間（ISO 8601 duration format）
+    // Calculate time
     const createdAt = new Date(quest.created_at);
     const updatedAt = new Date(quest.updated_at);
     const durationMs = updatedAt.getTime() - createdAt.getTime();
     const durationSeconds = Math.floor(durationMs / 1000);
     const time_spent = formatDuration(durationSeconds);
 
-    // 計算分數
-    const mission = await getMissionById(quest.mission_id);
+    // Calculate points
     let points = 0;
-    if (mission) {
-      for (const locationId of completedLocationIds) {
-        const location = mission.locations.find(loc => loc.id === locationId);
-        if (location) {
-          points += location.point;
-        }
+    for (const locationId of completedLocationIds) {
+      const location = mission.locations.find(loc => loc.id === locationId);
+      if (location) {
+        points += location.point;
       }
     }
 

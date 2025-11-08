@@ -30,42 +30,49 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    await updateQuestPaths(quest_id, body.paths);
+    // Fetch mission first
+    const mission = await getMissionById(quest.mission_id);
+    if (!mission) {
+      return NextResponse.json({ error: 'Mission not found' }, { status: 404 });
+    }
 
-    const completedLocationIds = await getCompletedLocationIds(quest_id, body.paths);
+    // Update paths (don't wait for completion status update inside)
+    await updateQuestPaths(quest_id, body.paths, mission);
 
-    const updatedQuest = await getQuestById(quest_id);
-
-    // 計算距離（公尺）
+    // Calculate all response data (no DB calls)
+    const completedLocationIds = getCompletedLocationIds(body.paths, mission);
     const distance = calculatePathDistance(body.paths);
 
-    // 計算時間（ISO 8601 duration format）
-    const createdAt = new Date(updatedQuest?.created_at || quest.created_at);
-    const updatedAt = new Date(updatedQuest?.updated_at || quest.updated_at);
-    const durationMs = updatedAt.getTime() - createdAt.getTime();
+    const createdAt = new Date(quest.created_at);
+    const now = new Date();
+    const durationMs = now.getTime() - createdAt.getTime();
     const durationSeconds = Math.floor(durationMs / 1000);
     const time_spent = formatDuration(durationSeconds);
 
-    // 計算分數
-    const mission = await getMissionById(quest.mission_id);
     let points = 0;
-    if (mission) {
-      for (const locationId of completedLocationIds) {
-        const location = mission.locations.find(loc => loc.id === locationId);
-        if (location) {
-          points += location.point;
-        }
+    for (const locationId of completedLocationIds) {
+      const location = mission.locations.find(loc => loc.id === locationId);
+      if (location) {
+        points += location.point;
       }
     }
 
-    await updateQuestPoints(quest_id, points);
+    // Update points asynchronously if changed (don't wait for it)
+    if (points !== quest.points) {
+      updateQuestPoints(quest_id, points).catch(err =>
+        console.error('Failed to update quest points:', err)
+      );
+    }
+
+    // Determine if finished based on completion check
+    const isFinished = completedLocationIds.length === mission.locations.length;
 
     const response: SubmitQuestResponse = {
       points,
       time_spent,
       distance: Math.round(distance),
       completed_location_ids: completedLocationIds,
-      is_finished: updatedQuest?.is_finished ?? false,
+      is_finished: isFinished,
     };
 
     return NextResponse.json(response, { status: 200 });

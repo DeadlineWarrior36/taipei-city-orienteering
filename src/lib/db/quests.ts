@@ -97,24 +97,21 @@ export async function getQuestPaths(questId: string): Promise<Coordinate[]> {
 }
 
 /**
- * 計算已完成的 location IDs
+ * 計算已完成的 location IDs，按首次抵達時間排序
  */
-export async function getCompletedLocationIds(
-  questId: string,
-  paths: Coordinate[]
-): Promise<string[]> {
-  const quest = await getQuestById(questId);
-  if (!quest) return [];
-
-  const mission = await getMissionById(quest.mission_id);
+export function getCompletedLocationIds(
+  paths: Coordinate[],
+  mission: Awaited<ReturnType<typeof getMissionById>>
+): string[] {
   if (!mission || !mission.locations || mission.locations.length === 0) {
     return [];
   }
 
-  const completedIds: string[] = [];
+  const completedWithTime: Array<{ id: string; firstVisitIndex: number }> = [];
 
   for (const location of mission.locations) {
-    const hasVisited = paths.some((path) =>
+    // Find the first path point that visited this location
+    const firstVisitIndex = paths.findIndex((path) =>
       isWithinDistance(
         path,
         { lnt: location.lnt, lat: location.lat },
@@ -122,22 +119,21 @@ export async function getCompletedLocationIds(
       )
     );
 
-    if (hasVisited) {
-      completedIds.push(location.id);
+    if (firstVisitIndex !== -1) {
+      completedWithTime.push({ id: location.id, firstVisitIndex });
     }
   }
 
-  return completedIds;
+  // Sort by first visit time (path index) and return IDs
+  return completedWithTime
+    .sort((a, b) => a.firstVisitIndex - b.firstVisitIndex)
+    .map(item => item.id);
 }
 
-async function checkMissionCompletion(
-  questId: string,
-  paths: Coordinate[]
-): Promise<boolean> {
-  const quest = await getQuestById(questId);
-  if (!quest) return false;
-
-  const mission = await getMissionById(quest.mission_id);
+function checkMissionCompletion(
+  paths: Coordinate[],
+  mission: Awaited<ReturnType<typeof getMissionById>>
+): boolean {
   if (!mission || !mission.locations || mission.locations.length === 0) {
     return false;
   }
@@ -214,7 +210,8 @@ export async function updateQuestPoints(
 
 export async function updateQuestPaths(
   questId: string,
-  paths: Coordinate[]
+  paths: Coordinate[],
+  mission: Awaited<ReturnType<typeof getMissionById>>
 ): Promise<void> {
   const supabase = supabaseAdmin();
 
@@ -232,7 +229,7 @@ export async function updateQuestPaths(
   }
 
   if (data.updated) {
-    const isCompleted = await checkMissionCompletion(questId, paths);
+    const isCompleted = checkMissionCompletion(paths, mission);
 
     if (isCompleted) {
       const { error: updateError } = await supabase

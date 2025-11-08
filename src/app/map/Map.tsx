@@ -72,7 +72,7 @@ export default function Map({
     const timeSinceLastLog = now - lastLoggedRef.current.timestamp;
     const last = lastLoggedRef.current.coords;
 
-    // Check if coords changed and enough time has passed (5000ms = 5s)
+    // Check if coords changed and enough time has passed (1000ms = 1s)
     const coordsChanged =
       !last || last.lat !== current.lat || last.lnt !== current.lnt;
     const shouldLog = coordsChanged && timeSinceLastLog >= 1000;
