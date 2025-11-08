@@ -9,6 +9,7 @@ import MissionPager from "./MissionPager";
 import useQuest from "./useQuest";
 import { useAuth } from "@/contexts/AuthContext";
 import useUserPoints from "./useUserPoints";
+import MissionEnd from "./MissionEnd";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false,
@@ -17,6 +18,7 @@ const Map = dynamic(() => import("./Map"), {
 export default function MapPage() {
   // Get user ID from local storage
   const { userId } = useAuth();
+  const [showEnd, setShowEnd] = useState(true);
 
   // Selected mission state
   const [selectedMissionId, setSelectedMissionId] = useState("1");
@@ -69,6 +71,67 @@ export default function MapPage() {
           onStart={handleStartQuest}
         />
       )}
+      {!showEnd ? <></> : (
+        <MissionEnd          
+          onPrimaryAction={() => {
+            setShowEnd(false);
+            console.log("View My Points clicked");
+          }}
+          missionName={selectedMission?.name || ""}
+          // totalPoints={150} /* Placeholder */
+          time={"1hr36min"} /* Placeholder */
+          distance={3200} /* Placeholder */
+          completedLocations={
+            selectedMission?.locations
+              // .concat(Array.from(selectedMission?.locations))
+              // .concat(Array.from(selectedMission?.locations))
+              .map((loc) => ({
+              id: loc.id,
+              name: loc.name,
+              description: loc.description ?? "",
+              points: 50, // Placeholder
+            })) || []
+          }
+       />    
+      )}
+      {!showEnd ? <></> : (
+        <MissionEnd          
+          onPrimaryAction={() => {
+            setShowEnd(false);
+            console.log("View My Points clicked");
+          }}
+          missionName={selectedMission?.name || ""}
+          // totalPoints={150} /* Placeholder */
+          time={"1hr36min"} /* Placeholder */
+          distance={3200} /* Placeholder */
+          completedLocations={
+            selectedMission?.locations
+              // .concat(Array.from(selectedMission?.locations))
+              // .concat(Array.from(selectedMission?.locations))
+              .map((loc) => ({
+              id: loc.id,
+              name: loc.name,
+              description: loc.description ?? "",
+              points: 50, // Placeholder
+            })) || []
+          }
+       />    
+      )}
+
+      <div className="absolute top-20 right-4 z-5000">
+        <div className="px-5 py-1.5 shadow-lg" style={{ backgroundColor: '#DBF1F5', borderRadius: '999px' }}>
+          <div className="flex items-center gap-2">
+            <Coins className="w-5 h-5 text-black" />
+            {loading ? (
+              <span className="font-bold text-base text-black">...</span>
+            ) : error ? (
+              <span className="font-bold text-base text-red-500">!</span>
+            ) : (
+              <span className="font-bold text-base text-black">{points}</span>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="absolute top-20 right-4 z-5000">
         <div className="px-5 py-1.5 shadow-lg" style={{ backgroundColor: '#DBF1F5', borderRadius: '999px' }}>
