@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { MissionsListResponse } from '@/types/api';
+import { withCors, handleCorsOptions } from '@/lib/cors';
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsOptions(request);
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,9 +18,9 @@ export async function GET(request: NextRequest) {
     if (lntStr) {
       lnt = parseFloat(lntStr);
       if (isNaN(lnt)) {
-        return NextResponse.json(
-          { error: 'Invalid lnt parameter' },
-          { status: 400 }
+        return withCors(
+          NextResponse.json({ error: 'Invalid lnt parameter' }, { status: 400 }),
+          request
         );
       }
     }
@@ -23,9 +28,9 @@ export async function GET(request: NextRequest) {
     if (latStr) {
       lat = parseFloat(latStr);
       if (isNaN(lat)) {
-        return NextResponse.json(
-          { error: 'Invalid lat parameter' },
-          { status: 400 }
+        return withCors(
+          NextResponse.json({ error: 'Invalid lat parameter' }, { status: 400 }),
+          request
         );
       }
     }
@@ -43,11 +48,11 @@ export async function GET(request: NextRequest) {
       ],
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return withCors(NextResponse.json(response, { status: 200 }), request);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid request' },
-      { status: 400 }
+    return withCors(
+      NextResponse.json({ error: 'Invalid request' }, { status: 400 }),
+      request
     );
   }
 }

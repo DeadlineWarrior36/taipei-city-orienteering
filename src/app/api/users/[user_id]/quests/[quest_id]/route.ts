@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SubmitQuestRequest, SubmitQuestResponse } from '@/types/api';
+import { withCors, handleCorsOptions } from '@/lib/cors';
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsOptions(request);
+}
 
 export async function POST(
   request: NextRequest,
@@ -10,9 +15,9 @@ export async function POST(
     const body: SubmitQuestRequest = await request.json();
 
     if (!body.paths || body.paths.length === 0) {
-      return NextResponse.json(
-        { error: 'paths is required' },
-        { status: 400 }
+      return withCors(
+        NextResponse.json({ error: 'paths is required' }, { status: 400 }),
+        request
       );
     }
 
@@ -22,11 +27,11 @@ export async function POST(
       distance: 5.2,
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return withCors(NextResponse.json(response, { status: 200 }), request);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid request' },
-      { status: 400 }
+    return withCors(
+      NextResponse.json({ error: 'Invalid request' }, { status: 400 }),
+      request
     );
   }
 }

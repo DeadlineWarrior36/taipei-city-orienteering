@@ -2,15 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { LoginRequest, LoginResponse } from '@/types/api';
 import { supabaseAdmin } from '@/lib/supabase';
 import { randomBytes } from 'crypto';
+import { withCors, handleCorsOptions } from '@/lib/cors';
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsOptions(request);
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body: LoginRequest = await request.json();
 
     if (!body.id || typeof body.id !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid user id' },
-        { status: 400 }
+      return withCors(
+        NextResponse.json({ error: 'Invalid user id' }, { status: 400 }),
+        request
       );
     }
 
@@ -27,9 +32,9 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error('Error creating user:', insertError);
-        return NextResponse.json(
-          { error: 'Failed to create user' },
-          { status: 500 }
+        return withCors(
+          NextResponse.json({ error: 'Failed to create user' }, { status: 500 }),
+          request
         );
       }
     }
@@ -49,9 +54,9 @@ export async function POST(request: NextRequest) {
 
     if (sessionError) {
       console.error('Error creating session:', sessionError);
-      return NextResponse.json(
-        { error: 'Failed to create session' },
-        { status: 500 }
+      return withCors(
+        NextResponse.json({ error: 'Failed to create session' }, { status: 500 }),
+        request
       );
     }
 
@@ -59,12 +64,12 @@ export async function POST(request: NextRequest) {
       token,
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return withCors(NextResponse.json(response, { status: 200 }), request);
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json(
-      { error: 'Invalid request' },
-      { status: 400 }
+    return withCors(
+      NextResponse.json({ error: 'Invalid request' }, { status: 400 }),
+      request
     );
   }
 }

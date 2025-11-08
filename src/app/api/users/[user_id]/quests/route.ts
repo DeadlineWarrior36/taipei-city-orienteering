@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { CreateQuestRequest, CreateQuestResponse } from '@/types/api';
+import { withCors, handleCorsOptions } from '@/lib/cors';
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsOptions(request);
+}
 
 export async function POST(
   request: NextRequest,
@@ -10,9 +15,9 @@ export async function POST(
     const body: CreateQuestRequest = await request.json();
 
     if (!body.mission_id) {
-      return NextResponse.json(
-        { error: 'mission_id is required' },
-        { status: 400 }
+      return withCors(
+        NextResponse.json({ error: 'mission_id is required' }, { status: 400 }),
+        request
       );
     }
 
@@ -22,11 +27,11 @@ export async function POST(
       id: quest_id,
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return withCors(NextResponse.json(response, { status: 200 }), request);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid request' },
-      { status: 400 }
+    return withCors(
+      NextResponse.json({ error: 'Invalid request' }, { status: 400 }),
+      request
     );
   }
 }
