@@ -36,6 +36,25 @@ export async function POST(request: NextRequest) {
 
     const token = randomBytes(32).toString('hex');
 
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    const { error: sessionError } = await supabaseAdmin
+      .from('user_sessions')
+      .insert([{
+        user_id: body.id,
+        token,
+        expires_at: expiresAt.toISOString(),
+      }]);
+
+    if (sessionError) {
+      console.error('Error creating session:', sessionError);
+      return NextResponse.json(
+        { error: 'Failed to create session' },
+        { status: 500 }
+      );
+    }
+
     const response: LoginResponse = {
       token,
     };
