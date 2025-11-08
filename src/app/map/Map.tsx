@@ -1,32 +1,36 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
-import { Coordinate } from "@/types/api";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  Polyline,
+  useMap,
+} from "react-leaflet";
+import { Coordinate, Location } from "@/types/api";
 import { useGeolocated } from "react-geolocated";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import MissionDisplay from "./MissionDisplay";
 import LocationsList from "./LocationsList";
-
-// Convert locations to proper format for LocationsList
-const convertLocationsForList = (locations?: Coordinate[]) => {
-  if (!locations) return [];
-  return locations.map((loc) => ({
-    lat: loc.lat,
-    lnt: loc.lnt, // Note: API uses lnt instead of lng
-    timestamp: Date.now(),
-  }));
-};
 
 export default function Map({
   locations,
   showMission = true,
   title,
+  // optional quest logging and display
+  logPath,
+  quest,
+  isRecording,
 }: {
   path?: Coordinate[];
-  locations?: Coordinate[];
+  locations?: Location[];
   showMission?: boolean;
   title?: string;
+  logPath?: (c: Coordinate) => Promise<void> | void;
+  quest?: { path: Coordinate[] } | null;
+  isRecording?: boolean;
 }) {
   const { coords } = useGeolocated({
     positionOptions: { enableHighAccuracy: false },
@@ -37,6 +41,35 @@ export default function Map({
   const centerCoords = coords
     ? { latitude: coords.latitude, longitude: coords.longitude }
     : { latitude: 25.033, longitude: 121.5654 };
+  // keep track of last logged coords to avoid flooding API
+  const lastLoggedRef = useRef<{ lat: number; lnt: number } | null>(null);
+
+  // When coordinates update and we're recording, log them to the quest
+  useEffect(() => {
+    if (!coords || !logPath || !isRecording) return;
+    const current = { lat: coords.latitude, lnt: coords.longitude };
+    const last = lastLoggedRef.current;
+    const changed =
+      !last || last.lat !== current.lat || last.lnt !== current.lnt;
+    if (changed) {
+      // call logPath (may be async)
+      Promise.resolve(logPath(current)).catch((err) =>
+        console.error("Failed to log path point", err)
+      );
+      lastLoggedRef.current = current;
+    }
+  }, [coords, logPath, isRecording]);
+
+  // helper component to recenter the map when coords change
+  function Recenter({ lat, lnt }: { lat: number; lnt: number }) {
+    const map = useMap();
+    useEffect(() => {
+      if (map && lat && lnt) {
+        map.setView([lat, lnt]);
+      }
+    }, [map, lat, lnt]);
+    return null;
+  }
 
   return (
     <div className="relative">
@@ -62,15 +95,28 @@ export default function Map({
           <Popup>我的位置</Popup>
         </CircleMarker>
 
+        {/* Recenter map when coordinates change */}
+        {coords && (
+          <Recenter lat={centerCoords.latitude} lnt={centerCoords.longitude} />
+        )}
+
+        {/* Draw recorded quest path */}
+        {quest?.path && quest.path.length > 0 && (
+          <Polyline
+            pathOptions={{ color: "#2563eb", weight: 4, opacity: 0.7 }}
+            positions={quest.path.map(
+              (p) => [p.lat, p.lnt] as [number, number]
+            )}
+          />
+        )}
+
         {/* Mission display */}
         <MissionDisplay locations={locations} show={showMission} />
       </MapContainer>
 
-      {/* Toggle list button */}
-
       {/* Locations list */}
       <LocationsList
-        locations={convertLocationsForList(locations)}
+        locations={locations}
         show={true}
         title={title || "任務點列表"}
       />

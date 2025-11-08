@@ -86,7 +86,6 @@ export default function MissionPager({
       dragStartY.current = null;
       // console.log("onPointerUp:", nearest);
     }, 100);
-
   };
 
   return (
@@ -184,7 +183,7 @@ export default function MissionPager({
                         控制點（{m.locations.length}）
                       </div>
                       <ul className="divide-y divide-neutral-200">
-                        {m.locations.map((_, j) => (
+                        {m.locations.map((loc, j) => (
                           <li
                             key={j}
                             className="px-4 py-3 flex items-start gap-3"
@@ -196,8 +195,8 @@ export default function MissionPager({
                               {j + 1}
                             </span>
                             <div className="flex-1">
-                              <div className="text-[15px] font-semibold">
-                                控制點 {j + 1}
+                              <div className="text-[15px] text-neutral-600 font-semibold">
+                                {loc.name}
                               </div>
                               <div className="text-xs text-neutral-600">
                                 目標：15 點・進入範圍即完成

@@ -1,6 +1,6 @@
 "use client";
 
-import { Coordinate } from "@/types/api";
+import { Location } from "@/types/api";
 import { useRef, useState } from "react";
 
 function clamp(n: number, min: number, max: number) {
@@ -13,7 +13,7 @@ export default function LocationsList({
   show = false,
   onClose,
 }: {
-  locations?: Coordinate[];
+  locations?: Location[];
   title?: string;
   show?: boolean;
   onClose?: () => void;
@@ -107,7 +107,7 @@ export default function LocationsList({
                     控制點（{locations.length}）
                   </div>
                   <ul className="divide-y divide-neutral-200">
-                    {locations.map((_, j) => (
+                    {locations.map((loc, j) => (
                       <li key={j} className="px-4 py-3 flex items-start gap-3">
                         <span
                           className="mt-0.5 grid h-6 w-6 place-items-center rounded-full text-xs font-semibold text-white"
@@ -116,8 +116,8 @@ export default function LocationsList({
                           {j + 1}
                         </span>
                         <div className="flex-1">
-                          <div className="text-[15px] font-semibold">
-                            控制點 {j + 1}
+                          <div className="text-[15px] text-neutral-600 font-semibold">
+                            {loc.name}
                           </div>
                           <div className="text-xs text-neutral-600">
                             目標：15 點・進入範圍即完成

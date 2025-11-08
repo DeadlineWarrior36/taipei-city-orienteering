@@ -6,7 +6,6 @@ import { useState, useCallback } from "react";
 import useMissionsList from "./useMissionsList";
 import MissionPager from "./MissionPager";
 import useQuest from "./useQuest";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Map = dynamic(() => import("./Map"), {
@@ -27,12 +26,10 @@ export default function MapPage() {
   );
 
   // Quest handling
-  const { isRecording, startQuest, endQuest } = useQuest({
+  const { isRecording, startQuest, logPath, endQuest, quest } = useQuest({
     userId: userId ?? "",
     missionId: selectedMissionId,
   });
-
-  console.log("Selected Mission ID:", selectedMission, isRecording);
 
   // Start quest handler
   const handleStartQuest = useCallback(async () => {
@@ -51,7 +48,10 @@ export default function MapPage() {
     <div className="relative overflow-hidden">
       <Map
         locations={selectedMission?.locations}
-        showMission={!isRecording} /* Hide mission points when recording */
+        // showMission={!isRecording} /* Hide mission points when recording */
+        logPath={logPath}
+        quest={quest}
+        isRecording={isRecording}
       />
       {!isRecording && (
         <MissionPager

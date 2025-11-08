@@ -1,13 +1,13 @@
 "use client";
 
 import { CircleMarker, Popup } from "react-leaflet";
-import { Coordinate } from "@/types/api";
+import { Location } from "@/types/api";
 
 export default function MissionDisplay({
   locations,
   show = true,
 }: {
-  locations?: Coordinate[];
+  locations?: Location[];
   show?: boolean;
 }) {
   if (!show || !locations?.length) return null;
@@ -25,7 +25,11 @@ export default function MissionDisplay({
             fillOpacity: 0.2,
           }}
         >
-          <Popup>Mission Point {index + 1}</Popup>
+          <Popup>
+            <span className="text-sm">{location.name}</span>
+            <br />
+            <span className="text-xs">{location.description}</span>
+          </Popup>
         </CircleMarker>
       ))}
     </>
