@@ -46,8 +46,7 @@ export interface CreateQuestRequest {
 }
 
 export interface CreateQuestResponse {
-  message: string;
-  quest_id: string;
+  id: string;
 }
 
 export interface SubmitQuestRequest {
