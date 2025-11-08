@@ -7,7 +7,11 @@ export async function GET(
   { params }: { params: Promise<{ user_id: string; quest_id: string }> }
 ) {
   try {
-    const { user_id, quest_id } = await params;
+    const user_id = request.headers.get('x-user-id');
+    if (!user_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { quest_id } = await params;
 
     const quest = await getQuestById(quest_id);
     if (!quest) {

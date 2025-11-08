@@ -7,7 +7,10 @@ export async function POST(
   { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
-    const { user_id } = await params;
+    const user_id = request.headers.get('x-user-id');
+    if (!user_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const body: CreateQuestRequest = await request.json();
 
     if (!body.mission_id) {

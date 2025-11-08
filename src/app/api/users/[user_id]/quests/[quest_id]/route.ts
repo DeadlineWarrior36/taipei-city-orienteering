@@ -7,7 +7,11 @@ export async function POST(
   { params }: { params: Promise<{ user_id: string; quest_id: string }> }
 ) {
   try {
-    const { user_id, quest_id } = await params;
+    const user_id = request.headers.get('x-user-id');
+    if (!user_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { quest_id } = await params;
     const body: SubmitQuestRequest = await request.json();
 
     if (!body.paths || body.paths.length === 0) {
@@ -27,11 +31,14 @@ export async function POST(
 
     const completedLocationIds = await getCompletedLocationIds(quest_id, body.paths);
 
+    const updatedQuest = await getQuestById(quest_id);
+
     const response: SubmitQuestResponse = {
       points: 0,
       time_spent: 'PT0S',
       distance: 0,
       completed_location_ids: completedLocationIds,
+      is_finished: updatedQuest?.is_finished ?? false,
     };
 
     return NextResponse.json(response, { status: 200 });
