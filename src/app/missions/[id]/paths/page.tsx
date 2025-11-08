@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Mission, MissionPathsResponse } from '@/types/api';
 import MissionPathsMap from './MissionPathsMap';

@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { LatLngExpression, LatLngBounds } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Mission } from '@/types/api';
+import { Mission, PathData } from '@/types/api';
 
 interface MissionPathsMapProps {
   mission: Mission;

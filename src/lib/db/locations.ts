@@ -12,7 +12,7 @@ export interface LocationRecord {
   updated_at: string;
 }
 
-export async function getLocations(_params?: {
+export async function getLocations(params?: {
   lnt?: number;
   lat?: number;
 }): Promise<Location[]> {

@@ -3,8 +3,7 @@ import type { CreateQuestRequest, CreateQuestResponse } from '@/types/api';
 import { createQuest } from '@/lib/db/quests';
 
 export async function POST(
-  request: NextRequest,
-  _context: { params: Promise<{ user_id: string }> }
+  request: NextRequest
 ) {
   try {
     const user_id = request.headers.get('x-user-id');
