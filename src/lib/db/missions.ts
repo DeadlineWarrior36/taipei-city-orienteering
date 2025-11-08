@@ -65,7 +65,7 @@ export async function getMissions(): Promise<Mission[]> {
       )
     `)
     .in('mission_id', missionIds)
-    .order('sequence_order') as { data: MissionLocationWithJoin[] | null; error: any };
+    .order('sequence_order') as { data: MissionLocationWithJoin[] | null; error: Error | null };
 
   if (locationsError) {
     throw new Error(`Failed to fetch mission locations: ${locationsError.message}`);
@@ -120,7 +120,7 @@ export async function getMissionById(id: string): Promise<Mission | null> {
       )
     `)
     .eq('mission_id', id)
-    .order('sequence_order') as { data: MissionLocationWithJoin[] | null; error: any };
+    .order('sequence_order') as { data: MissionLocationWithJoin[] | null; error: Error | null };
 
   if (locationsError) {
     throw new Error(`Failed to fetch mission locations: ${locationsError.message}`);
