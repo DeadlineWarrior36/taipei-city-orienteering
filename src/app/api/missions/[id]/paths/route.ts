@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { MissionPathsResponse } from '@/types/api';
+import { getQuestsByMissionId } from '@/lib/db/quests';
+import { getMissionById } from '@/lib/db/missions';
 
 export async function GET(
   request: NextRequest,
@@ -8,32 +10,20 @@ export async function GET(
   try {
     const { id } = await params;
 
+    const mission = await getMissionById(id);
+    if (!mission) {
+      return NextResponse.json({ error: 'Mission not found' }, { status: 404 });
+    }
+
+    const paths = await getQuestsByMissionId(id);
+
     const response: MissionPathsResponse = {
-      paths: [
-        {
-          id: 'path_1',
-          path: [
-            { lnt: 121.5654, lat: 25.0330 },
-            { lnt: 121.5200, lat: 25.0478 },
-            { lnt: 121.5100, lat: 25.0400 },
-          ],
-          time_spent: 'PT1H30M',
-          distance: 5.2,
-        },
-        {
-          id: 'path_2',
-          path: [
-            { lnt: 121.5654, lat: 25.0330 },
-            { lnt: 121.5300, lat: 25.0500 },
-          ],
-          time_spent: 'PT2H',
-          distance: 3.8,
-        },
-      ],
+      paths,
     };
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    console.error('Error fetching mission paths:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

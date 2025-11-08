@@ -126,3 +126,55 @@ export async function updateQuestPaths(
     }
   }
 }
+
+export interface QuestWithPaths {
+  id: string;
+  path: Coordinate[];
+  time_spent: string;
+  distance: number;
+}
+
+export async function getQuestsByMissionId(
+  missionId: string
+): Promise<QuestWithPaths[]> {
+  const supabase = supabaseAdmin();
+
+  const { data: quests, error: questsError } = await supabase
+    .from('quests')
+    .select('id, created_at')
+    .eq('mission_id', missionId)
+    .eq('is_finished', true);
+
+  if (questsError) {
+    throw new Error(`Failed to fetch quests: ${questsError.message}`);
+  }
+
+  if (!quests || quests.length === 0) {
+    return [];
+  }
+
+  const questIds = quests.map(q => q.id);
+
+  const { data: paths, error: pathsError } = await supabase
+    .from('quest_paths')
+    .select('quest_id, lnt, lat, sequence_order')
+    .in('quest_id', questIds)
+    .order('quest_id')
+    .order('sequence_order');
+
+  if (pathsError) {
+    throw new Error(`Failed to fetch quest paths: ${pathsError.message}`);
+  }
+
+  return quests.map(quest => ({
+    id: quest.id,
+    path: (paths || [])
+      .filter((p: any) => p.quest_id === quest.id)
+      .map((p: any) => ({
+        lnt: p.lnt,
+        lat: p.lat,
+      })),
+    time_spent: 'PT0S',
+    distance: 0,
+  }));
+}
