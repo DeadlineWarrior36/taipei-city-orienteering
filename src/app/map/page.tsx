@@ -194,7 +194,7 @@ export default function MapPage() {
       url += `&origin=${firstLoc.lat},${firstLoc.lnt}`;
     }
 
-    window.open(url, '_blank');
+    window.location.href = url;
   };
 
   return (

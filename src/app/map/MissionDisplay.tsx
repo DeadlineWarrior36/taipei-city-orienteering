@@ -85,8 +85,6 @@ function LocationMarker({
           </div>
           <a
             href={`https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lnt}`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="block w-full text-center px-3 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 active:scale-95 transition-all"
             style={{ backgroundColor: "var(--brand, #5AB4C5)" }}
           >
