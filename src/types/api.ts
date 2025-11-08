@@ -60,6 +60,7 @@ export interface SubmitQuestResponse {
   time_spent: string;
   distance: number;
   completed_location_ids: string[];
+  is_finished: boolean;
 }
 
 export interface QuestOverviewResponse {
