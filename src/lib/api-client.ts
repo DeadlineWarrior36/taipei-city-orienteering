@@ -40,6 +40,7 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
     const response = await fetch(url, {
       ...options,
+      mode: 'cors',
       headers: {
         ...headers,
         ...options?.headers,
