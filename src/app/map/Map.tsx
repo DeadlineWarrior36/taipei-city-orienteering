@@ -1,100 +1,152 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useEffect } from "react";
-import { useGeolocated } from "react-geolocated";
+import { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
-  useMap,
   CircleMarker,
   Popup,
+  useMap,
+  Circle,
 } from "react-leaflet";
-import { Coordinates } from "../types";
 
-function Recenter({ position }: { position: [number, number] }) {
+type Coordinates = { latitude: number; longitude: number };
+
+function FitToLocations({ locations }: { locations?: Coordinates[] }) {
   const map = useMap();
   useEffect(() => {
-    if (!position) return;
-    try {
-      // animate pan to new position when it changes
-      map.setView(position, map.getZoom(), { animate: true });
-    } catch {
-      // ignore map errors during SSR hydration or unmounted map
+    if (!locations || locations.length === 0) return;
+
+    if (locations.length === 1) {
+      const p = locations[0];
+      map.setView([p.latitude, p.longitude], Math.max(map.getZoom(), 16), {
+        animate: true,
+      });
+    } else {
+      const L = (window as any).L;
+      const bounds = L.latLngBounds(
+        locations.map((p) => [p.latitude, p.longitude])
+      );
+      map.fitBounds(bounds, { padding: [56, 72], maxZoom: 16, animate: true });
     }
-  }, [map, position]);
+  }, [map, locations]);
   return null;
 }
 
-export default function Map({
-  locations,
-}: {
-  path?: Coordinates[];
-  locations?: Coordinates[];
-}) {
-  const { coords, isGeolocationAvailable, isGeolocationEnabled } =
-    useGeolocated({
-      positionOptions: { enableHighAccuracy: false },
-      watchLocationPermissionChange: true,
-      watchPosition: true,
-    });
+export default function Map({ locations }: { locations?: Coordinates[] }) {
+  // --- 使用者位置 state（直接用 navigator.geolocation） ---
+  const [user, setUser] = useState<{
+    lat: number;
+    lng: number;
+    acc?: number;
+    hasFix: boolean;
+  }>({ lat: 25.0478, lng: 121.517, hasFix: false });
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const firstFixPanned = useRef(false);
+  const watchId = useRef<number | null>(null);
 
-  // default to Taipei City Hall coordinates if no coords yet
-  const position: [number, number] = [
-    coords?.latitude ?? 25.033,
-    coords?.longitude ?? 121.5654,
-  ];
+  useEffect(() => {
+    if (!("geolocation" in navigator)) {
+      setGeoError("此裝置不支援定位");
+      return;
+    }
+    // 連續監看位置
+    watchId.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        setUser({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          acc: pos.coords.accuracy,
+          hasFix: true,
+        });
+        setGeoError(null);
+      },
+      (err) => {
+        setGeoError(
+          err.code === err.PERMISSION_DENIED
+            ? "定位權限被拒絕（請在瀏覽器網站權限中允許「位置」）"
+            : err.message
+        );
+      },
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+    );
+    return () => {
+      if (watchId.current !== null) navigator.geolocation.clearWatch(watchId.current);
+    };
+  }, []);
 
-  const hasCoords = isGeolocationEnabled && isGeolocationAvailable;
+  // 首次拿到座標就把地圖平移到使用者位置（不影響任務點 fitBounds）
+  function RecenterOnFirstFix() {
+    const map = useMap();
+    useEffect(() => {
+      if (user.hasFix && !firstFixPanned.current) {
+        firstFixPanned.current = true;
+        map.setView([user.lat, user.lng], Math.max(map.getZoom(), 16), {
+          animate: true,
+        });
+      }
+    }, [map, user.hasFix]);
+    return null;
+  }
 
   return (
     <div className="relative">
-      {/* top-left status overlay */}
-      <div className="absolute left-16 top-2 z-1000 bg-white/90 text-black text-sm p-2 rounded shadow">
-        {!isGeolocationAvailable && (
-          <div>Geolocation not available in this browser.</div>
-        )}
-        {isGeolocationAvailable && !isGeolocationEnabled && (
-          <div>Geolocation permission denied or disabled.</div>
-        )}
-        {isGeolocationAvailable && isGeolocationEnabled && !hasCoords && (
-          <div>Waiting for location…</div>
-        )}
-        {hasCoords && <div>Tracking enabled — following you on the map</div>}
+      {/* 右上角狀態 pill（便於偵錯） */}
+      <div className="absolute right-3 top-3 z-[1200] rounded-full bg-white/80 backdrop-blur px-3 py-1.5 text-xs shadow">
+        {geoError ? geoError : user.hasFix ? "定位中" : "取得定位中…"}
       </div>
 
       <MapContainer
-        className="h-screen"
-        center={position}
+        center={[user.lat, user.lng]}
         zoom={13}
-        scrollWheelZoom={true}
+        scrollWheelZoom
+        preferCanvas
+        zoomControl={false} 
+        style={{ height: "100dvh", width: "100%" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attribution='&copy; OpenStreetMap &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        {/* Use a CircleMarker to avoid dealing with Leaflet image icons in Next.js build */}
-        <CircleMarker
-          center={position}
-          radius={5}
-          pathOptions={{ color: "#2563eb", weight: 2 }}
-        >
-          <Popup>{hasCoords ? "You are here" : "Default center"}</Popup>
-        </CircleMarker>
 
-        {locations?.map((loc, index) => (
+        {/* 我的藍點 + 精度圈（拿到 fix 才顯示） */}
+        {user.hasFix && (
+          <>
+            <Circle
+              center={[user.lat, user.lng]}
+              radius={Math.min(user.acc ?? 60, 80)}
+              pathOptions={{
+                color: "#2563eb",
+                weight: 1,
+                opacity: 0.25,
+                fillOpacity: 0.1,
+              }}
+            />
+            <CircleMarker
+              center={[user.lat, user.lng]}
+              radius={7}
+              pathOptions={{ color: "#2563eb", weight: 3, opacity: 0.95 }}
+            >
+              <Popup>我的位置</Popup>
+            </CircleMarker>
+          </>
+        )}
+
+        {/* 任務點（不把使用者點塞進自動縮放） */}
+        {locations?.map((loc, i) => (
           <CircleMarker
-            key={index}
+            key={`${loc.latitude}-${loc.longitude}-${i}`}
             center={[loc.latitude, loc.longitude]}
-            radius={5}
-            pathOptions={{ color: "#ef4444", weight: 2 }}
+            radius={8}
+            pathOptions={{ color: "#5AB4C5", weight: 3 }}
           >
-            <Popup>Mission Location {index + 1}</Popup>
+            <Popup>任務點 #{i + 1}</Popup>
           </CircleMarker>
         ))}
 
-        {/* keep the map centered when the position changes */}
-        <Recenter position={position} />
+        <FitToLocations locations={locations} />
+        <RecenterOnFirstFix />
       </MapContainer>
     </div>
   );
