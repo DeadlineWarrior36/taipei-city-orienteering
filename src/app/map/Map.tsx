@@ -10,6 +10,7 @@ import {
   CircleMarker,
   Popup,
 } from "react-leaflet";
+import { Coordinates } from "../types";
 
 function Recenter({ position }: { position: [number, number] }) {
   const map = useMap();
@@ -25,7 +26,12 @@ function Recenter({ position }: { position: [number, number] }) {
   return null;
 }
 
-export default function Map({}) {
+export default function Map({
+  locations,
+}: {
+  path?: Coordinates[];
+  locations?: Coordinates[];
+}) {
   const { coords, isGeolocationAvailable, isGeolocationEnabled } =
     useGeolocated({
       positionOptions: { enableHighAccuracy: false },
@@ -64,10 +70,9 @@ export default function Map({}) {
         scrollWheelZoom={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-
         {/* Use a CircleMarker to avoid dealing with Leaflet image icons in Next.js build */}
         <CircleMarker
           center={position}
@@ -76,6 +81,17 @@ export default function Map({}) {
         >
           <Popup>{hasCoords ? "You are here" : "Default center"}</Popup>
         </CircleMarker>
+
+        {locations?.map((loc, index) => (
+          <CircleMarker
+            key={index}
+            center={[loc.latitude, loc.longitude]}
+            radius={5}
+            pathOptions={{ color: "#ef4444", weight: 2 }}
+          >
+            <Popup>Mission Location {index + 1}</Popup>
+          </CircleMarker>
+        ))}
 
         {/* keep the map centered when the position changes */}
         <Recenter position={position} />
