@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import { LatLngExpression, LatLngBounds } from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Mission, PathData } from '@/types/api';
 
@@ -10,6 +11,7 @@ interface MissionPathsMapProps {
   mission: Mission;
   paths: PathData[];
   pathColors: string[];
+  showHeatmap?: boolean;
 }
 
 function FitBounds({ paths, mission }: { paths: PathData[], mission: Mission }) {
@@ -49,7 +51,75 @@ function FitBounds({ paths, mission }: { paths: PathData[], mission: Mission }) 
   return null;
 }
 
-export default function MissionPathsMap({ mission, paths, pathColors }: MissionPathsMapProps) {
+// Heatmap by drawing all paths overlapped with transparency
+function HeatmapLayer({ paths }: { paths: PathData[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || paths.length === 0) return;
+
+    const polylines: L.Polyline[] = [];
+
+    // Draw each path multiple times with increasing thickness and decreasing opacity
+    // to create a heat effect
+    paths.forEach((path) => {
+      if (path.path && Array.isArray(path.path) && path.path.length > 1) {
+        const coords = path.path.map(p => [p.lat, p.lnt] as [number, number]);
+
+        // Draw multiple layers for heat effect (冷 -> 熱)
+        // Layer 1: Wide, very transparent (outermost glow) - 藍色基底
+        const layer1 = L.polyline(coords, {
+          color: '#3b82f6',
+          weight: 20,
+          opacity: 0.08,
+          lineJoin: 'round',
+          lineCap: 'round',
+        }).addTo(map);
+        polylines.push(layer1);
+
+        // Layer 2: Medium, semi-transparent - 黃色過渡
+        const layer2 = L.polyline(coords, {
+          color: '#fbbf24',
+          weight: 12,
+          opacity: 0.12,
+          lineJoin: 'round',
+          lineCap: 'round',
+        }).addTo(map);
+        polylines.push(layer2);
+
+        // Layer 3: Narrow, more visible - 橙色
+        const layer3 = L.polyline(coords, {
+          color: '#f97316',
+          weight: 6,
+          opacity: 0.18,
+          lineJoin: 'round',
+          lineCap: 'round',
+        }).addTo(map);
+        polylines.push(layer3);
+
+        // Layer 4: Very narrow, most visible - 紅色核心（最熱）
+        const layer4 = L.polyline(coords, {
+          color: '#ef4444',
+          weight: 3,
+          opacity: 0.25,
+          lineJoin: 'round',
+          lineCap: 'round',
+        }).addTo(map);
+        polylines.push(layer4);
+      }
+    });
+
+    return () => {
+      polylines.forEach(line => {
+        map.removeLayer(line);
+      });
+    };
+  }, [map, paths]);
+
+  return null;
+}
+
+export default function MissionPathsMap({ mission, paths, pathColors, showHeatmap = false }: MissionPathsMapProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -81,7 +151,11 @@ export default function MissionPathsMap({ mission, paths, pathColors }: MissionP
         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
       />
 
-      {paths.map((path, index) => (
+      {showHeatmap ? (
+        <HeatmapLayer paths={paths} />
+      ) : (
+        <>
+          {paths.map((path, index) => (
         <Polyline
           key={path.id}
           pathOptions={{
@@ -99,28 +173,6 @@ export default function MissionPathsMap({ mission, paths, pathColors }: MissionP
             </div>
           </Popup>
         </Polyline>
-      ))}
-
-      {mission.locations.map((location) => (
-        <CircleMarker
-          key={location.id}
-          center={[location.lat, location.lnt]}
-          radius={10}
-          pathOptions={{
-            color: '#16a34a',
-            fillColor: '#16a34a',
-            fillOpacity: 0.6,
-            weight: 2,
-          }}
-        >
-          <Popup>
-            <div className="text-sm">
-              <p className="font-semibold">{location.name}</p>
-              {location.description && <p className="text-gray-600">{location.description}</p>}
-              <p className="text-[#2CB6C7] font-medium mt-1">+{location.point} 分</p>
-            </div>
-          </Popup>
-        </CircleMarker>
       ))}
 
       {paths.map((path, index) => {
@@ -170,6 +222,31 @@ export default function MissionPathsMap({ mission, paths, pathColors }: MissionP
           </CircleMarker>
         );
       })}
+        </>
+      )}
+
+      {/* Show mission location markers only in path mode */}
+      {!showHeatmap && mission.locations.map((location) => (
+        <CircleMarker
+          key={location.id}
+          center={[location.lat, location.lnt]}
+          radius={10}
+          pathOptions={{
+            color: '#16a34a',
+            fillColor: '#16a34a',
+            fillOpacity: 0.6,
+            weight: 2,
+          }}
+        >
+          <Popup>
+            <div className="text-sm">
+              <p className="font-semibold">{location.name}</p>
+              {location.description && <p className="text-gray-600">{location.description}</p>}
+              <p className="text-[#2CB6C7] font-medium mt-1">+{location.point} 分</p>
+            </div>
+          </Popup>
+        </CircleMarker>
+      ))}
     </MapContainer>
   );
 }

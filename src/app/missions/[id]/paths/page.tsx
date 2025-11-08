@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Flame } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Mission, MissionPathsResponse } from '@/types/api';
 import MissionPathsMap from './MissionPathsMap';
@@ -16,6 +16,7 @@ export default function MissionPathsPage() {
   const [pathsData, setPathsData] = useState<MissionPathsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showHeatmap, setShowHeatmap] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,10 +115,21 @@ export default function MissionPathsPage() {
       </div>
 
       <div className="flex-1 px-4 py-6">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <p className="text-gray-600">
             已完成路徑：{pathsData.paths.length} 條
           </p>
+          <button
+            onClick={() => setShowHeatmap(!showHeatmap)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              showHeatmap
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <Flame className={`h-5 w-5 ${showHeatmap ? 'animate-pulse' : ''}`} />
+            {showHeatmap ? '熱點圖模式' : '路徑模式'}
+          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -129,6 +141,7 @@ export default function MissionPathsPage() {
                   mission={mission}
                   paths={pathsData.paths}
                   pathColors={pathColors}
+                  showHeatmap={showHeatmap}
                 />
               </div>
             </div>
