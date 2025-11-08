@@ -17,6 +17,12 @@ const Map = dynamic(() => import("./Map"), {
 
 export default function MapPage() {
   const router = useRouter();
+
+  // Set page title
+  useEffect(() => {
+    document.title = "定向台北";
+  }, []);
+
   // Get user ID from local storage
   const { userId } = useAuth();
 

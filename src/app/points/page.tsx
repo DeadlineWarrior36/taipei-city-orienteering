@@ -10,6 +10,12 @@ import type { PointsTransaction } from "@/types/api";
 
 export default function PointsPage() {
   const router = useRouter();
+
+  // Set page title
+  useEffect(() => {
+    document.title = "定向台北";
+  }, []);
+
   const { userId } = useAuth();
   const { points, loading } = useUserPoints(userId);
   const [activeTab, setActiveTab] = useState<"earned" | "used">("earned");
@@ -130,16 +136,6 @@ export default function PointsPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#EDF8FA" }}>
-      <div className="bg-white px-4 py-3 shadow-sm flex items-center">
-        <button
-          onClick={() => router.back()}
-          className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ChevronLeft className="w-6 h-6 text-black" />
-        </button>
-        <h1 className="text-lg font-semibold text-black ml-2">我的點數</h1>
-      </div>
-
       <div className="flex-1 px-4 pt-6 pb-4">
         <div className="flex items-center justify-center gap-3 mb-6">
           <Coins className="w-10 h-10 text-[#2CB6C7]" />

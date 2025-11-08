@@ -13,6 +13,11 @@ export default function MissionPathsPage() {
   const router = useRouter();
   const missionId = params.id as string;
 
+  // Set page title
+  useEffect(() => {
+    document.title = "定向台北";
+  }, []);
+
   const [mission, setMission] = useState<Mission | null>(null);
   const [pathsData, setPathsData] = useState<MissionPathsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,20 +116,6 @@ export default function MissionPathsPage() {
 
   return (
     <div className="h-dvh flex flex-col min-h-0 bg-[#EDF8FA]">
-      {/* Header with back button and points */}
-      <div className="flex-none bg-white px-4 py-3 shadow-sm flex items-center justify-between">
-        <button
-          onClick={() => router.back()}
-          className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ChevronLeft className="w-6 h-6 text-black" />
-        </button>
-        <div className="flex items-center gap-2 bg-[var(--brand)] text-white px-4 py-2 rounded-full">
-          <Coins className="w-5 h-5" />
-          <span className="font-bold">{points}</span>
-        </div>
-      </div>
-
       {/* Map */}
       <div className="flex-1 min-h-0">
         <MissionPathsMap
