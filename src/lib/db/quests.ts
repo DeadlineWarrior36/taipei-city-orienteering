@@ -163,78 +163,37 @@ export class PathPrefixError extends Error {
   }
 }
 
-function isSameCoordinate(coord1: Coordinate, coord2: Coordinate): boolean {
-  const EPSILON = 1e-9;
-  return Math.abs(coord1.lnt - coord2.lnt) < EPSILON &&
-         Math.abs(coord1.lat - coord2.lat) < EPSILON;
-}
-
-function isPrefixRelated(dbPaths: Coordinate[], newPaths: Coordinate[]): boolean {
-  const minLength = Math.min(dbPaths.length, newPaths.length);
-
-  for (let i = 0; i < minLength; i++) {
-    if (!isSameCoordinate(dbPaths[i], newPaths[i])) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 export async function updateQuestPaths(
   questId: string,
   paths: Coordinate[]
 ): Promise<void> {
   const supabase = supabaseAdmin();
 
-  const existingPaths = await getQuestPaths(questId);
+  const { data, error } = await supabase.rpc('update_quest_paths', {
+    p_quest_id: questId,
+    p_paths: paths,
+  });
 
-  if (existingPaths.length > 0 && !isPrefixRelated(existingPaths, paths)) {
-    console.log('Existing paths:', JSON.stringify(existingPaths));
-    console.log('New paths:', JSON.stringify(paths));
-    throw new PathPrefixError('New path must have a prefix relationship with existing path');
+  if (error) {
+    throw new Error(`Failed to update quest paths: ${error.message}`);
   }
 
-  if (paths.length <= existingPaths.length) {
-    return;
+  if (!data.success) {
+    throw new PathPrefixError(data.error);
   }
 
-  const { error: deleteError } = await supabase
-    .from('quest_paths')
-    .delete()
-    .eq('quest_id', questId);
+  if (data.updated) {
+    const isCompleted = await checkMissionCompletion(questId, paths);
 
-  if (deleteError) {
-    throw new Error(`Failed to delete existing paths: ${deleteError.message}`);
-  }
+    if (isCompleted) {
+      const { error: updateError } = await supabase
+        .from('quests')
+        .update({ is_finished: true })
+        .eq('id', questId);
 
-  if (paths.length > 0) {
-    const newPaths = paths.map((coord, index) => ({
-      quest_id: questId,
-      lnt: coord.lnt,
-      lat: coord.lat,
-      sequence_order: index,
-    }));
-
-    const { error: insertError } = await supabase
-      .from('quest_paths')
-      .insert(newPaths);
-
-    if (insertError) {
-      throw new Error(`Failed to insert quest paths: ${insertError.message}`);
-    }
-  }
-
-  const isCompleted = await checkMissionCompletion(questId, paths);
-
-  if (isCompleted) {
-    const { error: updateError } = await supabase
-      .from('quests')
-      .update({ is_finished: true })
-      .eq('id', questId);
-
-    if (updateError) {
-      throw new Error(`Failed to update quest completion: ${updateError.message}`);
+      if (updateError) {
+        throw new Error(`Failed to update quest completion: ${updateError.message}`);
+      }
     }
   }
 }
