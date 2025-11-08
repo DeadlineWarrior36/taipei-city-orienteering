@@ -25,8 +25,8 @@ export interface LoginResponse {
 }
 
 export interface MissionsListRequest {
-  lnt: number;
-  lat: number;
+  lnt?: number;
+  lat?: number;
 }
 
 export interface MissionsListResponse {
