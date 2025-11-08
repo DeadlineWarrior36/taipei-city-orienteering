@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
 import { Coins } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import useMissionsList from "./useMissionsList";
 import MissionPager from "./MissionPager";
@@ -16,6 +17,7 @@ const Map = dynamic(() => import("./Map"), {
 });
 
 export default function MapPage() {
+  const router = useRouter();
   // Get user ID from local storage
   const { userId } = useAuth();
   const [showEnd, setShowEnd] = useState(true);
@@ -98,41 +100,46 @@ export default function MapPage() {
         />
       )}
 
-      <div className="absolute top-20 right-4 z-5000">
-        <div
-          className="px-5 py-1.5 shadow-lg"
-          style={{ backgroundColor: "#DBF1F5", borderRadius: "999px" }}
-        >
-          <div className="flex items-center gap-2">
-            <Coins className="w-5 h-5 text-black" />
-            {loading ? (
-              <span className="font-bold text-base text-black">...</span>
-            ) : error ? (
-              <span className="font-bold text-base text-red-500">!</span>
-            ) : (
-              <span className="font-bold text-base text-black">{points}</span>
-            )}
-          </div>
-        </div>
-      </div>
+      {!showEnd ? <></> : (
+        <MissionEnd          
+          onPrimaryAction={() => {
+            setShowEnd(false);
+            console.log("View My Points clicked");
+          }}
+          missionName={selectedMission?.name || ""}
+          // totalPoints={150} /* Placeholder */
+          time={"1hr36min"} /* Placeholder */
+          distance={3200} /* Placeholder */
+          completedLocations={
+            selectedMission?.locations
+              // .concat(Array.from(selectedMission?.locations))
+              // .concat(Array.from(selectedMission?.locations))
+              .map((loc) => ({
+              id: loc.id,
+              name: loc.name,
+              description: loc.description ?? "",
+              points: 50, // Placeholder
+            })) || []
+          }
+       />
+      )}
 
-      <div className="absolute top-20 right-4 z-5000">
-        <div
-          className="px-5 py-1.5 shadow-lg"
-          style={{ backgroundColor: "#DBF1F5", borderRadius: "999px" }}
-        >
-          <div className="flex items-center gap-2">
-            <Coins className="w-5 h-5 text-black" />
-            {loading ? (
-              <span className="font-bold text-base text-black">...</span>
-            ) : error ? (
-              <span className="font-bold text-base text-red-500">!</span>
-            ) : (
-              <span className="font-bold text-base text-black">{points}</span>
-            )}
-          </div>
+      <button
+        onClick={() => router.push('/points')}
+        className="absolute top-20 right-4 z-5000 px-5 py-1.5 shadow-lg hover:shadow-xl transition-shadow active:scale-95"
+        style={{ backgroundColor: '#DBF1F5', borderRadius: '999px' }}
+      >
+        <div className="flex items-center gap-2">
+          <Coins className="w-5 h-5 text-black" />
+          {loading ? (
+            <span className="font-bold text-base text-black">...</span>
+          ) : error ? (
+            <span className="font-bold text-base text-red-500">!</span>
+          ) : (
+            <span className="font-bold text-base text-black">{points}</span>
+          )}
         </div>
-      </div>
+      </button>
 
       {/* Quest controls */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-5000 p-4">
