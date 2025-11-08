@@ -15,7 +15,7 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL=https://web-api-server-167351732833.asia-east1.run.app/api/v1
 
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 RUN yarn build
 
 # Production stage
@@ -23,7 +23,7 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 ENV PORT=8080
 
 # Create non-root user
