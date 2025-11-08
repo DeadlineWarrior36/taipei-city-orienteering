@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useState, useCallback, useEffect } from "react";
-import { Coins, Navigation, GripVertical } from "lucide-react";
+import { Coins, Navigation, GripVertical, CheckCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import useMissionsList from "./useMissionsList";
@@ -68,6 +68,45 @@ export default function MapPage() {
 
   // Get display locations (reordered or original)
   const displayLocations = reorderedLocations.length > 0 ? reorderedLocations : selectedMission?.locations || [];
+
+  // Track completed locations to show notification
+  const [lastCompletedCount, setLastCompletedCount] = useState(0);
+  const [showCompletionNotification, setShowCompletionNotification] = useState(false);
+  const [completedLocationName, setCompletedLocationName] = useState("");
+  const [completionTime, setCompletionTime] = useState("");
+  const [completionDistance, setCompletionDistance] = useState(0);
+
+  // Format ISO 8601 duration (PT1H2M3S) to readable format
+  const formatDuration = (duration: string) => {
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return "0:00";
+
+    const hours = parseInt(match[1] || "0");
+    const minutes = parseInt(match[2] || "0");
+    const seconds = parseInt(match[3] || "0");
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  useEffect(() => {
+    const currentCount = quest?.completedLocationIds?.length || 0;
+    if (currentCount > lastCompletedCount) {
+      // New location completed (including first one)
+      const lastCompletedId = quest?.completedLocationIds?.[currentCount - 1];
+      const completedLocation = displayLocations.find(loc => loc.id === lastCompletedId);
+      if (completedLocation) {
+        setCompletedLocationName(completedLocation.name);
+        setCompletionTime(formatDuration(quest?.timeSpent || "PT0S"));
+        setCompletionDistance(quest?.distance || 0);
+        setShowCompletionNotification(true);
+        setTimeout(() => setShowCompletionNotification(false), 5000);
+      }
+    }
+    setLastCompletedCount(currentCount);
+  }, [quest?.completedLocationIds, lastCompletedCount, displayLocations, quest?.timeSpent, quest?.distance]);
 
   // Handle drag and drop reordering
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -249,6 +288,60 @@ export default function MapPage() {
               >
                 結束任務
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Completion Notification */}
+      {showCompletionNotification && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[6000] flex items-center justify-center animate-in fade-in duration-300"
+          onClick={() => setShowCompletionNotification(false)}
+        >
+          <div
+            className="relative rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-4 min-w-[320px] animate-in zoom-in duration-300"
+            style={{ background: "var(--brand, #5AB4C5)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowCompletionNotification(false)}
+              className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+            >
+              <X className="h-6 w-6" strokeWidth={2} />
+            </button>
+
+            <div className="relative">
+              <CheckCircle
+                className="h-24 w-24 text-white drop-shadow-lg"
+                strokeWidth={2.5}
+              />
+              <div className="absolute inset-0 bg-white rounded-full animate-ping opacity-20"></div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-2">
+                成功抵達！
+              </div>
+              <div className="text-xl text-white/95 font-semibold mb-6">
+                {completedLocationName}
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 flex gap-4 justify-center">
+                <div className="flex flex-col items-center">
+                  <div className="text-xs text-white/80 mb-1">花費時間</div>
+                  <div className="text-lg font-bold text-white">{completionTime}</div>
+                </div>
+                <div className="w-px bg-white/30"></div>
+                <div className="flex flex-col items-center">
+                  <div className="text-xs text-white/80 mb-1">走過距離</div>
+                  <div className="text-lg font-bold text-white">{completionDistance.toFixed(0)}m</div>
+                </div>
+                <div className="w-px bg-white/30"></div>
+                <div className="flex flex-col items-center">
+                  <div className="text-xs text-white/80 mb-1">已完成</div>
+                  <div className="text-lg font-bold text-white">{quest?.completedLocationIds?.length || 0} / {displayLocations.length}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
