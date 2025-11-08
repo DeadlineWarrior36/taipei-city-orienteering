@@ -91,3 +91,8 @@ export interface LocationsListRequest {
 export interface LocationsListResponse {
   locations: Location[];
 }
+
+export interface UserResponse {
+  id: string;
+  total_points: number;
+}

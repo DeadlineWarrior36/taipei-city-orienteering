@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SubmitQuestRequest, SubmitQuestResponse } from '@/types/api';
-import { getQuestById, updateQuestPaths, getCompletedLocationIds, PathPrefixError } from '@/lib/db/quests';
+import { getQuestById, updateQuestPaths, getCompletedLocationIds, PathPrefixError, updateQuestPoints } from '@/lib/db/quests';
 import { calculatePathDistance } from '@/lib/utils/distance';
 import { getMissionById } from '@/lib/db/missions';
 
@@ -56,6 +56,8 @@ export async function POST(
         }
       }
     }
+
+    await updateQuestPoints(quest_id, points);
 
     const response: SubmitQuestResponse = {
       points,

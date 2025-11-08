@@ -9,6 +9,7 @@ export interface QuestRecord {
   user_id: string;
   mission_id: string;
   is_finished: boolean;
+  points: number;
   created_at: string;
   updated_at: string;
 }
@@ -160,6 +161,41 @@ export class PathPrefixError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'PathPrefixError';
+  }
+}
+
+export async function updateQuestPoints(
+  questId: string,
+  newPoints: number
+): Promise<void> {
+  const supabase = supabaseAdmin();
+
+  const quest = await getQuestById(questId);
+  if (!quest) {
+    throw new Error('Quest not found');
+  }
+
+  const previousPoints = quest.points;
+  const pointsDiff = newPoints - previousPoints;
+
+  const { error: questError } = await supabase
+    .from('quests')
+    .update({ points: newPoints })
+    .eq('id', questId);
+
+  if (questError) {
+    throw new Error(`Failed to update quest points: ${questError.message}`);
+  }
+
+  if (pointsDiff !== 0) {
+    const { error: userError } = await supabase.rpc('increment_user_points', {
+      p_user_id: quest.user_id,
+      p_points: pointsDiff,
+    });
+
+    if (userError) {
+      throw new Error(`Failed to update user points: ${userError.message}`);
+    }
   }
 }
 
