@@ -1,5 +1,8 @@
 import { supabaseAdmin } from '@/lib/supabase';
-import type { Coordinate } from '@/types/api';
+import type { Coordinate, Location } from '@/types/api';
+import { getMissionById } from './missions';
+import { isWithinDistance } from '@/lib/utils/distance';
+import { QUEST_CONFIG } from '@/config/quest';
 
 export interface QuestRecord {
   id: string;
@@ -90,6 +93,35 @@ export async function getQuestPaths(questId: string): Promise<Coordinate[]> {
   }));
 }
 
+async function checkMissionCompletion(
+  questId: string,
+  paths: Coordinate[]
+): Promise<boolean> {
+  const quest = await getQuestById(questId);
+  if (!quest) return false;
+
+  const mission = await getMissionById(quest.mission_id);
+  if (!mission || !mission.locations || mission.locations.length === 0) {
+    return false;
+  }
+
+  for (const location of mission.locations) {
+    const hasVisited = paths.some((path) =>
+      isWithinDistance(
+        path,
+        { lnt: location.lnt, lat: location.lat },
+        QUEST_CONFIG.COMPLETION_DISTANCE_METERS
+      )
+    );
+
+    if (!hasVisited) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export async function updateQuestPaths(
   questId: string,
   paths: Coordinate[]
@@ -123,6 +155,19 @@ export async function updateQuestPaths(
 
     if (insertError) {
       throw new Error(`Failed to insert quest paths: ${insertError.message}`);
+    }
+  }
+
+  const isCompleted = await checkMissionCompletion(questId, paths);
+
+  if (isCompleted) {
+    const { error: updateError } = await supabase
+      .from('quests')
+      .update({ is_finished: true })
+      .eq('id', questId);
+
+    if (updateError) {
+      throw new Error(`Failed to update quest completion: ${updateError.message}`);
     }
   }
 }
