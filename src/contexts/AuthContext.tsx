@@ -22,8 +22,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleAutoLogin = async () => {
     setIsAuthenticating(true);
     try {
-      await login();
-      setLoginError(null);
+      const storedToken = localStorage.getItem('auth_token');
+      const storedUserId = localStorage.getItem('user_id');
+
+      if (storedToken && storedUserId) {
+        setUserId(storedUserId);
+        setToken(storedToken);
+        apiClient.setToken(storedToken);
+        apiClient.setUserId(storedUserId);
+        setLoginError(null);
+      } else {
+        await login();
+        setLoginError(null);
+      }
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : '驗證失敗');
       setShowLoginModal(true);
