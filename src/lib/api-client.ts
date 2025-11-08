@@ -15,6 +15,11 @@ import type {
 
 class ApiClient {
   private token: string | null = null;
+  private baseUrl: string;
+
+  constructor() {
+    this.baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+  }
 
   setToken(token: string | null) {
     this.token = token;
@@ -32,7 +37,8 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`/api${endpoint}`, {
+    const url = `${this.baseUrl}${endpoint}`;
+    const response = await fetch(url, {
       ...options,
       headers: {
         ...headers,
