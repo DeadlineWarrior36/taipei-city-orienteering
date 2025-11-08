@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase';
-import type { Coordinate, Location } from '@/types/api';
+import type { Coordinate } from '@/types/api';
 import { getMissionById } from './missions';
-import { isWithinDistance } from '@/lib/utils/distance';
+import { isWithinDistance, calculatePathDistance } from '@/lib/utils/distance';
 import { QUEST_CONFIG } from '@/config/quest';
 
 export interface QuestRecord {
@@ -212,7 +212,7 @@ export async function getQuestsByMissionId(
 
   const { data: quests, error: questsError } = await supabase
     .from('quests')
-    .select('id, created_at')
+    .select('id, created_at, updated_at')
     .eq('mission_id', missionId)
     .eq('is_finished', true);
 
@@ -237,15 +237,27 @@ export async function getQuestsByMissionId(
     throw new Error(`Failed to fetch quest paths: ${pathsError.message}`);
   }
 
-  return quests.map(quest => ({
-    id: quest.id,
-    path: (paths || [])
+  return quests.map(quest => {
+    const questPaths = (paths || [])
       .filter((p: Pick<QuestPathRecord, 'quest_id' | 'lnt' | 'lat' | 'sequence_order'>) => p.quest_id === quest.id)
       .map((p: Pick<QuestPathRecord, 'quest_id' | 'lnt' | 'lat' | 'sequence_order'>) => ({
         lnt: p.lnt,
         lat: p.lat,
-      })),
-    time_spent: 'PT0S',
-    distance: 0,
-  }));
+      }));
+
+    const createdAt = new Date(quest.created_at);
+    const updatedAt = new Date(quest.updated_at);
+    const durationMs = updatedAt.getTime() - createdAt.getTime();
+    const durationSeconds = Math.floor(durationMs / 1000);
+    const time_spent = `PT${durationSeconds}S`;
+
+    const distance = calculatePathDistance(questPaths);
+
+    return {
+      id: quest.id,
+      path: questPaths,
+      time_spent,
+      distance: Math.round(distance),
+    };
+  });
 }
