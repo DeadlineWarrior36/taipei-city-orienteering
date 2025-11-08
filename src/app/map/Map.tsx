@@ -49,8 +49,8 @@ export default function Map({
 
   const coords = useMemo(
     () => ({
-      latitude: originalOri?.latitude ? originalOri.latitude + latOffset : 25.0330 + latOffset,
-      longitude: originalOri?.longitude ? originalOri.longitude + lngOffset : 121.5654 + lngOffset,
+      latitude: originalOri?.latitude ? originalOri.latitude + latOffset : 25.021600 + latOffset,
+      longitude: originalOri?.longitude ? originalOri.longitude + lngOffset : 121.535037 + lngOffset,
     }),
     [originalOri, latOffset, lngOffset]
   );
