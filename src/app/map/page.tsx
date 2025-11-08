@@ -1,8 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useCallback } from "react";
-import { Coins } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Coins, Navigation, GripVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import useMissionsList from "./useMissionsList";
@@ -25,6 +25,7 @@ export default function MapPage() {
   // Selected mission state
   const [selectedMissionId, setSelectedMissionId] = useState("1");
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
+  const [reorderedLocations, setReorderedLocations] = useState<any[]>([]);
 
   // Fetch missions data
   const { missions } = useMissionsList();
@@ -56,6 +57,62 @@ export default function MapPage() {
   const showEnd = quest?.isFinished;
 
   const duration = moment.duration(quest?.timeSpent || "");
+
+  // Initialize reordered locations when mission changes
+  useEffect(() => {
+    if (selectedMission?.locations) {
+      setReorderedLocations(selectedMission.locations);
+    }
+  }, [selectedMission]);
+
+  // Get display locations (reordered or original)
+  const displayLocations = reorderedLocations.length > 0 ? reorderedLocations : selectedMission?.locations || [];
+
+  // Handle drag and drop reordering
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newLocations = [...displayLocations];
+    const draggedItem = newLocations[draggedIndex];
+    newLocations.splice(draggedIndex, 1);
+    newLocations.splice(index, 0, draggedItem);
+
+    setReorderedLocations(newLocations);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  // Open all locations in Google Maps
+  const handleOpenAllNavigation = () => {
+    const waypoints = displayLocations
+      .slice(1, -1)
+      .map(loc => `${loc.lat},${loc.lnt}`)
+      .join('|');
+
+    const firstLoc = displayLocations[0];
+    const lastLoc = displayLocations[displayLocations.length - 1];
+
+    let url = `https://www.google.com/maps/dir/?api=1`;
+    url += `&destination=${lastLoc.lat},${lastLoc.lnt}`;
+    if (waypoints) {
+      url += `&waypoints=${waypoints}`;
+    }
+    if (firstLoc) {
+      url += `&origin=${firstLoc.lat},${firstLoc.lnt}`;
+    }
+
+    window.open(url, '_blank');
+  };
 
   return (
     <div className="h-screen overflow-hidden">
@@ -176,21 +233,28 @@ export default function MapPage() {
             <div className="flex-1 bg-white rounded-2xl overflow-hidden shadow-lg">
               <div className="h-full overflow-y-auto px-4 py-3">
                 <ul className="space-y-2">
-                  {selectedMission?.locations.map((loc, j) => {
+                  {displayLocations.map((loc, j) => {
                     const isCompleted = quest?.completedLocationIds?.includes(loc.id);
                     const isSelected = selectedLocationId === loc.id;
                     return (
                       <li
                         key={loc.id}
+                        draggable={!isCompleted}
+                        onDragStart={() => handleDragStart(j)}
+                        onDragOver={(e) => handleDragOver(e, j)}
+                        onDragEnd={handleDragEnd}
                         onClick={() => setSelectedLocationId(loc.id)}
-                        className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
+                        className={`flex items-center gap-2 p-3 rounded-xl transition-all ${
                           isSelected
                             ? "bg-[color:var(--brand,#5AB4C5)]/20 ring-2 ring-[color:var(--brand,#5AB4C5)]"
                             : isCompleted
                             ? "bg-green-50 hover:bg-green-100"
-                            : "bg-neutral-50 hover:bg-neutral-100"
+                            : "bg-neutral-50 hover:bg-neutral-100 cursor-move"
                         }`}
                       >
+                        {!isCompleted && (
+                          <GripVertical className="h-4 w-4 text-neutral-400 shrink-0" />
+                        )}
                         <span
                           className={`grid h-7 w-7 place-items-center rounded-full text-xs font-semibold shrink-0 ${
                             isCompleted
@@ -218,13 +282,22 @@ export default function MapPage() {
               </div>
             </div>
 
-            {/* 結束按鈕 */}
-            <button
-              onClick={endQuest}
-              className="mt-4 w-full bg-white text-red-600 px-6 py-3 rounded-xl hover:bg-white/90 active:scale-95 transition-all shadow-lg font-bold"
-            >
-              結束任務
-            </button>
+            {/* 按鈕區 */}
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={handleOpenAllNavigation}
+                className="flex-1 bg-white text-[color:var(--brand,#5AB4C5)] px-4 py-3 rounded-xl hover:bg-white/90 active:scale-95 transition-all shadow-lg font-bold flex items-center justify-center gap-2"
+              >
+                <Navigation className="h-5 w-5" />
+                <span>一鍵導航</span>
+              </button>
+              <button
+                onClick={endQuest}
+                className="flex-1 bg-white text-red-600 px-4 py-3 rounded-xl hover:bg-white/90 active:scale-95 transition-all shadow-lg font-bold"
+              >
+                結束任務
+              </button>
+            </div>
           </div>
         </div>
       )}
