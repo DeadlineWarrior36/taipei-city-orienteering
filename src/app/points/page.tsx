@@ -12,6 +12,7 @@ export default function PointsPage() {
   const { points, loading } = useUserPoints(userId);
   const [activeTab, setActiveTab] = useState<"earned" | "used">("earned");
   const [qrCodeExpiry, setQrCodeExpiry] = useState(300);
+  const [qrSeed, setQrSeed] = useState(Date.now());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -29,7 +30,41 @@ export default function PointsPage() {
 
   const handleRefreshQR = () => {
     setQrCodeExpiry(300);
+    setQrSeed(Date.now());
   };
+
+  const generateQRPattern = (seed: number) => {
+    const random = (n: number) => {
+      const x = Math.sin(seed + n) * 10000;
+      return x - Math.floor(x);
+    };
+
+    const patterns = [];
+    const moduleSize = 4.5;
+    const gridSize = 21;
+
+    let index = 0;
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const x = 2 + col * moduleSize;
+        const y = 2 + row * moduleSize;
+
+        const isTopLeft = row < 7 && col < 7;
+        const isTopRight = row < 7 && col >= gridSize - 7;
+        const isBottomLeft = row >= gridSize - 7 && col < 7;
+
+        if (!isTopLeft && !isTopRight && !isBottomLeft) {
+          if (random(index) > 0.45) {
+            patterns.push({ x, y, size: moduleSize, key: index });
+          }
+          index++;
+        }
+      }
+    }
+    return patterns;
+  };
+
+  const qrPatterns = generateQRPattern(qrSeed);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#EDF8FA" }}>
@@ -60,22 +95,28 @@ export default function PointsPage() {
           </p>
 
           <div className="flex items-center justify-center mb-3">
-            <div className="w-32 h-32 bg-white rounded-lg flex items-center justify-center p-2">
+            <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center p-2">
               <svg className="w-full h-full" viewBox="0 0 100 100">
-                <rect x="0" y="0" width="30" height="30" fill="black"/>
-                <rect x="70" y="0" width="30" height="30" fill="black"/>
-                <rect x="0" y="70" width="30" height="30" fill="black"/>
-                <rect x="10" y="10" width="10" height="10" fill="white"/>
-                <rect x="80" y="10" width="10" height="10" fill="white"/>
-                <rect x="10" y="80" width="10" height="10" fill="white"/>
-                <rect x="40" y="20" width="5" height="5" fill="black"/>
-                <rect x="50" y="25" width="5" height="5" fill="black"/>
-                <rect x="45" y="35" width="5" height="5" fill="black"/>
-                <rect x="60" y="40" width="5" height="5" fill="black"/>
-                <rect x="35" y="50" width="5" height="5" fill="black"/>
-                <rect x="55" y="55" width="5" height="5" fill="black"/>
-                <rect x="40" y="65" width="5" height="5" fill="black"/>
-                <rect x="65" y="70" width="5" height="5" fill="black"/>
+                <rect x="2" y="2" width="31" height="31" fill="black"/>
+                <rect x="67" y="2" width="31" height="31" fill="black"/>
+                <rect x="2" y="67" width="31" height="31" fill="black"/>
+                <rect x="7" y="7" width="21" height="21" fill="white"/>
+                <rect x="72" y="7" width="21" height="21" fill="white"/>
+                <rect x="7" y="72" width="21" height="21" fill="white"/>
+                <rect x="12" y="12" width="11" height="11" fill="black"/>
+                <rect x="77" y="12" width="11" height="11" fill="black"/>
+                <rect x="12" y="77" width="11" height="11" fill="black"/>
+
+                {qrPatterns.map((pattern) => (
+                  <rect
+                    key={pattern.key}
+                    x={pattern.x}
+                    y={pattern.y}
+                    width={pattern.size}
+                    height={pattern.size}
+                    fill="black"
+                  />
+                ))}
               </svg>
             </div>
           </div>
