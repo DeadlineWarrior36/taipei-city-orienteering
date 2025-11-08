@@ -1,9 +1,8 @@
-'use client';
+"use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 const SHEET_OPEN_Y = 90; // px from top when opened
-const SHEET_CLOSED_VISIBLE = 300; // px of sheet visible from bottom when collapsed
 
 const LaunchPage: React.FC = () => {
   // closedY is calculated from bottom: viewport height - visible portion
@@ -30,21 +29,21 @@ const LaunchPage: React.FC = () => {
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
-  const onPointerMove = (e: PointerEvent) => {
-    if (!dragRef.current.dragging) return;
-    const delta = e.clientY - dragRef.current.startPointerY;
-    const nextY = dragRef.current.startSheetY + delta;
-    setSheetY(clamp(nextY, SHEET_OPEN_Y, closedY));
-  };
-
   const onPointerUp = useCallback(() => {
     if (!dragRef.current.dragging) return;
     dragRef.current.dragging = false;
     const middle = (SHEET_OPEN_Y + closedY) / 2;
     setSheetY((prev) => (prev < middle ? SHEET_OPEN_Y : closedY));
     const shouldOpen = sheetY <= middle;
-    console.log("sheetY:", sheetY, "middle:", middle, "shouldOpen:", shouldOpen);
-   
+    console.log(
+      "sheetY:",
+      sheetY,
+      "middle:",
+      middle,
+      "shouldOpen:",
+      shouldOpen
+    );
+
     // If the sheet was dragged open, navigate to /map after the opening animation
     if (shouldOpen) {
       // wait for the CSS transition to complete so the open animation is visible
@@ -55,48 +54,28 @@ const LaunchPage: React.FC = () => {
     }
   }, [closedY, router, sheetY]);
 
-useEffect(() => {
-  window.addEventListener("pointermove", onPointerMove);
-  window.addEventListener("pointerup", onPointerUp);
+  useEffect(() => {
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragRef.current.dragging) return;
+      const delta = e.clientY - dragRef.current.startPointerY;
+      const nextY = dragRef.current.startSheetY + delta;
+      setSheetY(clamp(nextY, SHEET_OPEN_Y, closedY));
+    };
 
-  return () => {
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
-  };
-}, [onPointerMove, onPointerUp]);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
 
-
-  // // Populate closedY and sheetY after mount to avoid SSR/window issues.
-  // useEffect(() => {
-  //   const initial = window.innerHeight - SHEET_CLOSED_VISIBLE;
-  //   setClosedY(initial);
-  //   setSheetY(initial);
-  // }, []);
-
-  // Recompute closedY on resize so the sheet stays anchored to the bottom
-  // useEffect(() => {
-  //   const handleResize = () => {
-  //     const next = window.innerHeight - SHEET_CLOSED_VISIBLE;
-  //     setClosedY((prevClosed) => {
-  //       // if sheet currently at the previous closed position, move it to the new closed position
-  //       setSheetY((prevSheet) => (prevSheet === prevClosed ? next : prevSheet));
-  //       return next;
-  //     });
-  //   };
-
-  //   window.addEventListener("resize", handleResize);
-  //   return () => window.removeEventListener("resize", handleResize);
-  // }, []);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [onPointerUp, closedY]);
 
   return (
     <div style={styles.app}>
       {/* background */}
       <div style={styles.bgWrap}>
-        <img
-          src="launch-bg.jpeg"
-          alt="Taipei street"
-          style={styles.bgImg}
-        />
+        <img src="launch-bg.jpeg" alt="Taipei street" style={styles.bgImg} />
         <div style={styles.overlay} />
         {/* <div style={styles.heroText}>
           <h1 style={styles.heroTitle}>台北城市漫步計畫</h1>

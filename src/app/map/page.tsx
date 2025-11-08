@@ -72,8 +72,10 @@ export default function MapPage() {
           onStart={handleStartQuest}
         />
       )}
-      {!showEnd ? <></> : (
-        <MissionEnd          
+      {!showEnd ? (
+        <></>
+      ) : (
+        <MissionEnd
           onPrimaryAction={() => {
             setShowEnd(false);
             console.log("View My Points clicked");
@@ -87,40 +89,20 @@ export default function MapPage() {
               // .concat(Array.from(selectedMission?.locations))
               // .concat(Array.from(selectedMission?.locations))
               .map((loc) => ({
-              id: loc.id,
-              name: loc.name,
-              description: loc.description ?? "",
-              points: 50, // Placeholder
-            })) || []
+                id: loc.id,
+                name: loc.name,
+                description: loc.description ?? "",
+                points: 50, // Placeholder
+              })) || []
           }
-       />    
-      )}
-      {!showEnd ? <></> : (
-        <MissionEnd          
-          onPrimaryAction={() => {
-            setShowEnd(false);
-            console.log("View My Points clicked");
-          }}
-          missionName={selectedMission?.name || ""}
-          // totalPoints={150} /* Placeholder */
-          time={"1hr36min"} /* Placeholder */
-          distance={3200} /* Placeholder */
-          completedLocations={
-            selectedMission?.locations
-              // .concat(Array.from(selectedMission?.locations))
-              // .concat(Array.from(selectedMission?.locations))
-              .map((loc) => ({
-              id: loc.id,
-              name: loc.name,
-              description: loc.description ?? "",
-              points: 50, // Placeholder
-            })) || []
-          }
-       />    
+        />
       )}
 
       <div className="absolute top-20 right-4 z-5000">
-        <div className="px-5 py-1.5 shadow-lg" style={{ backgroundColor: '#DBF1F5', borderRadius: '999px' }}>
+        <div
+          className="px-5 py-1.5 shadow-lg"
+          style={{ backgroundColor: "#DBF1F5", borderRadius: "999px" }}
+        >
           <div className="flex items-center gap-2">
             <Coins className="w-5 h-5 text-black" />
             {loading ? (
@@ -135,7 +117,10 @@ export default function MapPage() {
       </div>
 
       <div className="absolute top-20 right-4 z-5000">
-        <div className="px-5 py-1.5 shadow-lg" style={{ backgroundColor: '#DBF1F5', borderRadius: '999px' }}>
+        <div
+          className="px-5 py-1.5 shadow-lg"
+          style={{ backgroundColor: "#DBF1F5", borderRadius: "999px" }}
+        >
           <div className="flex items-center gap-2">
             <Coins className="w-5 h-5 text-black" />
             {loading ? (
