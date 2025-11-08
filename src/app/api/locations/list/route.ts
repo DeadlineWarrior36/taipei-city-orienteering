@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { LocationsListResponse } from '@/types/api';
+import { getLocations } from '@/lib/db/locations';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,16 +25,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const locations = await getLocations({ lnt, lat });
+
     const response: LocationsListResponse = {
-      locations: [
-        { id: 'loc_1', name: 'Taipei 101', lnt: 121.5654, lat: 25.0330, point: 10 },
-        { id: 'loc_2', name: 'National Palace Museum', lnt: 121.5200, lat: 25.0478, point: 15 },
-        { id: 'loc_3', name: 'Chiang Kai-shek Memorial Hall', lnt: 121.5436, lat: 25.0375, point: 20 },
-      ],
+      locations,
     };
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    console.error('Error fetching locations:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
