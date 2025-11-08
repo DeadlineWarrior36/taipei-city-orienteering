@@ -57,15 +57,17 @@ export default function MapPage() {
   const duration = moment.duration(quest?.timeSpent || "");
 
   return (
-    <div className="relative overflow-hidden">
-      <Map
-        locations={selectedMission?.locations}
-        // showMission={!isRecording} /* Hide mission points when recording */
-        logPath={logPath}
-        quest={quest}
-        isRecording={isRecording}
-        completedLocationIds={quest?.completedLocationIds}
-      />
+    <div className="h-screen overflow-hidden">
+      <div className={isRecording ? "h-full relative" : "h-[calc(100vh-8rem)] relative"}>
+        <Map
+          locations={selectedMission?.locations}
+          // showMission={!isRecording} /* Hide mission points when recording */
+          logPath={logPath}
+          quest={quest}
+          isRecording={isRecording}
+          completedLocationIds={quest?.completedLocationIds}
+        />
+      </div>
       {!isRecording && (
         <MissionPager
           missions={missions?.missions || []}

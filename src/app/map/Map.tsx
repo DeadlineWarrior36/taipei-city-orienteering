@@ -99,14 +99,14 @@ export default function Map({
   }
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <MapContainer
         center={[coords.latitude, coords.longitude]}
         zoom={13}
         scrollWheelZoom
         preferCanvas
         zoomControl={false}
-        style={{ height: "100dvh", width: "100%" }}
+        style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
           attribution='&copy; OpenStreetMap &copy; <a href="https://carto.com/attributions">CARTO</a>'

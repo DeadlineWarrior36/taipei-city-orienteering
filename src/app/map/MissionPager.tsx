@@ -3,10 +3,6 @@
 import { Mission } from "@/types/api";
 import { useEffect, useRef, useState } from "react";
 
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
-
 export default function MissionPager({
   missions,
   index,
@@ -19,15 +15,8 @@ export default function MissionPager({
   onStart?: () => void;
 }) {
   const rowRef = useRef<HTMLDivElement>(null);
-
-  // ---- Bottom Sheet 互動狀態 ----
-  const snaps = [0.3, 0.6, 0.9]; // 30% / 60% / 90% 高
-  const [sheetPct, setSheetPct] = useState(0.45); // 初始 45% 高
-  const dragStartY = useRef<number | null>(null);
-  const dragStartPct = useRef<number>(sheetPct);
-
-  // 提供 CSS 變數給樣式使用
-  const sheetVH = `${sheetPct * 100}vh`;
+  const [showDetails, setShowDetails] = useState(false);
+  const isScrollingProgrammatically = useRef(false);
 
   // 捲到目標卡片置中
   useEffect(() => {
@@ -35,11 +24,19 @@ export default function MissionPager({
     const el = row?.children[index] as HTMLElement | undefined;
     if (!row || !el) return;
     const offset = el.offsetLeft - (row.clientWidth - el.clientWidth) / 2;
+    isScrollingProgrammatically.current = true;
     row.scrollTo({ left: offset, behavior: "smooth" });
+    // 滾動動畫結束後重置標記
+    setTimeout(() => {
+      isScrollingProgrammatically.current = false;
+    }, 500);
   }, [index]);
 
   // 使用者滑動時，依中心最近卡片更新 index
   const onScroll = () => {
+    // 如果是程式觸發的滾動，忽略
+    if (isScrollingProgrammatically.current) return;
+
     const row = rowRef.current;
     if (!row) return;
     const cards = Array.from(row.children) as HTMLElement[];
@@ -57,162 +54,128 @@ export default function MissionPager({
     if (best !== index) onIndexChange(best);
   };
 
-  // ---- 手勢：拖曳 handle 上下改變高度 ----
-  const onPointerDown = (e: React.PointerEvent) => {
-    dragStartY.current = e.clientY;
-    dragStartPct.current = sheetPct;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    // console.log("onPointerDown:", dragStartY.current, dragStartPct.current);
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (dragStartY.current === null) return;
-    const dy = e.clientY - dragStartY.current; // 往下拖 dy > 0
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-    const delta = -(dy / vh); // 往上為正值
-    const next = clamp(dragStartPct.current + delta, 0.25, 0.95);
-    setSheetPct(next);
-    // console.log("onPointerMove:", next);
-  };
-
-  const onPointerUp = () => {
-    if (dragStartY.current === null) return;
-    // 放手時吸附到最近的 snap point
-    setTimeout(() => {
-      const nearest = snaps.reduce((p, c) =>
-        Math.abs(c - sheetPct) < Math.abs(p - sheetPct) ? c : p
-      );
-      setSheetPct(nearest);
-      dragStartY.current = null;
-      // console.log("onPointerUp:", nearest);
-    }, 100);
-  };
+  const selectedMission = missions[index];
 
   return (
     <>
-      <div
-        className="pointer-events-none fixed inset-x-0 z-5000 flex justify-center"
-        style={{ bottom: `calc(${sheetVH} + 16px)` }}
-      >
-        <button
-          onClick={onStart}
-          className="pointer-events-auto rounded-full px-6 py-3 text-white font-semibold shadow-xl active:scale-95 transition-all cursor-pointer"
-          style={{ background: "var(--brand, #5AB4C5)" }}
-          aria-label="選定這個任務"
+      {/* 底部橫向任務列表 */}
+      <div className="h-32 backdrop-blur-lg border-t border-white/30 shadow-[0_-8px_24px_rgba(0,0,0,0.12)]" style={{ background: "rgba(219, 241, 245, 0.85)" }}>
+        <div
+          ref={rowRef}
+          onScroll={onScroll}
+          className="h-full flex gap-3 overflow-x-auto snap-x snap-mandatory px-4 py-4"
         >
-          選定這個任務
-        </button>
+          {missions.map((m, i) => (
+            <div
+              key={m.id}
+              onClick={() => {
+                if (i === index) {
+                  setShowDetails(true);
+                } else {
+                  onIndexChange(i);
+                }
+              }}
+              className={`snap-center shrink-0 w-64 h-full rounded-2xl p-4 cursor-pointer transition-all
+                          ${
+                            i === index
+                              ? "bg-[color:var(--brand,#5AB4C5)] text-white shadow-lg scale-105"
+                              : "bg-white text-neutral-800 shadow hover:shadow-md"
+                          }`}
+            >
+              <div className="text-sm font-bold mb-1 truncate">{m.name}</div>
+              <div
+                className={`text-xs ${
+                  i === index ? "text-white/90" : "text-neutral-600"
+                }`}
+              >
+                {m.locations.length} 個目的地
+              </div>
+              {i === index && (
+                <div className="text-xs text-white/80 mt-1">
+                  點擊查看詳情 →
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div
-        className="fixed inset-x-0 bottom-0 z-[1100]"
-        style={{ height: sheetVH }}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        onPointerMove={onPointerMove}
-      >
-        <div className="mx-auto h-full w-full max-w-screen-lg px-3">
+      {/* 控制點詳情彈窗 */}
+      {showDetails && selectedMission && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[2000] flex items-end"
+          onClick={() => setShowDetails(false)}
+        >
           <div
-            className="relative h-full rounded-t-[24px] border border-white/50
-                       bg-white/85 backdrop-blur-md shadow-[0_-12px_32px_rgba(0,0,0,0.16)]"
+            className="w-full bg-white rounded-t-3xl shadow-2xl max-h-[70vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* handle（可拖拉） */}
+            {/* Header */}
             <div
-              className="absolute left-1/2 top-3 -translate-x-1/2"
-              onPointerDown={onPointerDown}
+              className="px-6 py-5 text-white flex-shrink-0 rounded-t-3xl"
+              style={{ background: "var(--brand, #5AB4C5)" }}
             >
-              <div className="relative">
-                {/* 透明的放大感應區 */}
-                <div className="absolute -inset-y-4 -inset-x-20"></div>
-
-                {/* 看得到的灰色條 */}
-                <div className="relative z-[1] h-1.5 w-12 rounded-full bg-neutral-300/90 cursor-grab active:cursor-grabbing"></div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm opacity-90">選擇任務</div>
+                  <div className="text-2xl font-bold">
+                    {selectedMission.name}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDetails(false)}
+                  className="text-white/90 hover:text-white text-2xl"
+                >
+                  ✕
+                </button>
               </div>
             </div>
-            <div className="absolute right-4 top-3.5 z-[1] flex gap-1.5">
-              {missions.map((_, i) => (
-                <span
-                  key={i}
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    i === index
-                      ? "bg-[color:var(--brand,#5AB4C5)]"
-                      : "bg-neutral-300"
-                  }`}
-                />
-              ))}
-            </div>
-            {/* 卡片列（左右滑） */}
-            <div
-              ref={rowRef}
-              onScroll={onScroll}
-              className="absolute inset-0 mt-8 flex gap-4 overflow-x-auto snap-x snap-mandatory px-4 pb-5"
-            >
-              {missions.map((m, i) => (
-                <section
-                  key={m.id}
-                  onClick={() => onIndexChange(i)}
-                  className={`snap-center shrink-0 h-[calc(100%-8px)]
-                              w-[92vw] max-w-[720px] rounded-3xl overflow-hidden
-                              ${
-                                i === index
-                                  ? "ring-2 ring-[color:var(--brand,#5AB4C5)]/60"
-                                  : "ring-1 ring-neutral-200/60"
-                              }
-                              bg-white shadow-lg flex flex-col cursor-pointer`}
-                >
-                  {/* Header */}
-                  <div
-                    className="px-6 py-4 text-white flex-shrink-0"
-                    style={{ background: "var(--brand, #5AB4C5)" }}
-                  >
-                    <div className="text-xs/5 opacity-95 tracking-wide">
-                      選擇任務
-                    </div>
-                    <div className="text-xl sm:text-2xl font-extrabold tracking-wide">
-                      {m.name}
-                    </div>
-                  </div>
 
-                  {/* Body */}
-                  <div className="px-6 py-4 flex-grow overflow-y-auto">
-                    {/* <p className="text-[15px] leading-relaxed text-neutral-700 mb-4">
-                      {m.description}
-                    </p> */}
-                    <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-sm overflow-hidden">
-                      <div className="px-4 py-3 text-sm font-medium text-neutral-800 bg-neutral-50/60">
-                        控制點（{m.locations.length}）
+            {/* 控制點列表 */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-sm overflow-hidden">
+                <div className="px-4 py-3 text-sm font-medium text-neutral-800 bg-neutral-50/60">
+                  目的地（{selectedMission.locations.length}）
+                </div>
+                <ul className="divide-y divide-neutral-200">
+                  {selectedMission.locations.map((loc, j) => (
+                    <li key={j} className="px-4 py-3 flex items-start gap-3">
+                      <span
+                        className="mt-0.5 grid h-6 w-6 place-items-center rounded-full text-xs font-semibold text-white"
+                        style={{ background: "var(--brand, #5AB4C5)" }}
+                      >
+                        {j + 1}
+                      </span>
+                      <div className="flex-1">
+                        <div className="text-[15px] text-neutral-600 font-semibold">
+                          {loc.name}
+                        </div>
+                        <div className="text-xs text-neutral-600">
+                          目標：15 點・進入範圍即完成
+                        </div>
                       </div>
-                      <ul className="divide-y divide-neutral-200">
-                        {m.locations.map((loc, j) => (
-                          <li
-                            key={j}
-                            className="px-4 py-3 flex items-start gap-3"
-                          >
-                            <span
-                              className="mt-0.5 grid h-6 w-6 place-items-center rounded-full text-xs font-semibold text-white"
-                              style={{ background: "var(--brand, #5AB4C5)" }}
-                            >
-                              {j + 1}
-                            </span>
-                            <div className="flex-1">
-                              <div className="text-[15px] text-neutral-600 font-semibold">
-                                {loc.name}
-                              </div>
-                              <div className="text-xs text-neutral-600">
-                                目標：15 點・進入範圍即完成
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </section>
-              ))}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* 按鈕 */}
+            <div className="px-6 py-4 border-t border-neutral-200/50">
+              <button
+                onClick={() => {
+                  setShowDetails(false);
+                  onStart?.();
+                }}
+                className="w-full rounded-full px-6 py-3 text-white font-semibold shadow-lg active:scale-95 transition-all"
+                style={{ background: "var(--brand, #5AB4C5)" }}
+              >
+                選定這個任務
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
