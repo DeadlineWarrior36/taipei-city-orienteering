@@ -96,3 +96,17 @@ export interface UserResponse {
   id: string;
   total_points: number;
 }
+
+export interface PointsTransaction {
+  id: string;
+  user_id: string;
+  quest_id: string | null;
+  transaction_type: 'earned' | 'used';
+  points: number;
+  description: string | null;
+  created_at: string;
+}
+
+export interface PointsTransactionsResponse {
+  transactions: PointsTransaction[];
+}

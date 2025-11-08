@@ -3,6 +3,7 @@ import type { Coordinate } from '@/types/api';
 import { getMissionById } from './missions';
 import { isWithinDistance, calculatePathDistance } from '@/lib/utils/distance';
 import { QUEST_CONFIG } from '@/config/quest';
+import { createPointsTransaction } from './points-transactions';
 
 export interface QuestRecord {
   id: string;
@@ -196,6 +197,17 @@ export async function updateQuestPoints(
     if (userError) {
       throw new Error(`Failed to update user points: ${userError.message}`);
     }
+
+    const mission = await getMissionById(quest.mission_id);
+    const missionName = mission?.name || '未知任務';
+
+    await createPointsTransaction({
+      userId: quest.user_id,
+      questId: questId,
+      transactionType: pointsDiff > 0 ? 'earned' : 'used',
+      points: Math.abs(pointsDiff),
+      description: `完成任務「${missionName}」獲得點數`,
+    });
   }
 }
 

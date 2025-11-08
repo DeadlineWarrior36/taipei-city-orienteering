@@ -5,6 +5,8 @@ import { Coins, ChevronLeft, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import useUserPoints from "../map/useUserPoints";
+import { apiClient } from "@/lib/api-client";
+import type { PointsTransaction } from "@/types/api";
 
 export default function PointsPage() {
   const router = useRouter();
@@ -13,6 +15,9 @@ export default function PointsPage() {
   const [activeTab, setActiveTab] = useState<"earned" | "used">("earned");
   const [qrCodeExpiry, setQrCodeExpiry] = useState(300);
   const [qrSeed, setQrSeed] = useState(Date.now());
+  const [earnedTransactions, setEarnedTransactions] = useState<PointsTransaction[]>([]);
+  const [usedTransactions, setUsedTransactions] = useState<PointsTransaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -22,11 +27,68 @@ export default function PointsPage() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchTransactions = async () => {
+      setTransactionsLoading(true);
+      try {
+        const [earned, used] = await Promise.all([
+          apiClient.getPointsTransactions(userId, 'earned'),
+          apiClient.getPointsTransactions(userId, 'used'),
+        ]);
+        setEarnedTransactions(earned.transactions);
+        setUsedTransactions(used.transactions);
+      } catch (error) {
+        console.error('Failed to fetch transactions:', error);
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [userId]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+
+  const mergeTransactionsByQuest = (transactions: PointsTransaction[]) => {
+    const questMap = new Map<string | null, {
+      points: number;
+      description: string;
+      created_at: string;
+      quest_id: string | null;
+    }>();
+
+    transactions.forEach((transaction) => {
+      const key = transaction.quest_id || transaction.id;
+
+      if (transaction.quest_id && questMap.has(transaction.quest_id)) {
+        const existing = questMap.get(transaction.quest_id)!;
+        existing.points += transaction.points;
+        if (new Date(transaction.created_at) < new Date(existing.created_at)) {
+          existing.created_at = transaction.created_at;
+        }
+      } else {
+        questMap.set(key, {
+          points: transaction.points,
+          description: transaction.description || (transaction.transaction_type === 'earned' ? '獲得點數' : '使用點數'),
+          created_at: transaction.created_at,
+          quest_id: transaction.quest_id,
+        });
+      }
+    });
+
+    return Array.from(questMap.values()).sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  };
+
+  const mergedEarnedTransactions = mergeTransactionsByQuest(earnedTransactions);
+  const mergedUsedTransactions = mergeTransactionsByQuest(usedTransactions);
 
   const handleRefreshQR = () => {
     setQrCodeExpiry(300);
@@ -159,14 +221,76 @@ export default function PointsPage() {
           </div>
 
           <div className="p-4 min-h-[300px]">
-            {activeTab === "earned" ? (
+            {transactionsLoading ? (
               <div className="text-center text-gray-500 py-8">
-                <p>尚無獲得紀錄</p>
+                <p>載入中...</p>
               </div>
+            ) : activeTab === "earned" ? (
+              mergedEarnedTransactions.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  <p>尚無獲得紀錄</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {mergedEarnedTransactions.map((transaction, index) => (
+                    <div
+                      key={transaction.quest_id || `no-quest-${index}`}
+                      className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+                    >
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {transaction.description}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(transaction.created_at).toLocaleString('zh-TW', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-green-600">+{transaction.points}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="text-center text-gray-500 py-8">
-                <p>尚無使用紀錄</p>
-              </div>
+              mergedUsedTransactions.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  <p>尚無使用紀錄</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {mergedUsedTransactions.map((transaction, index) => (
+                    <div
+                      key={transaction.quest_id || `no-quest-${index}`}
+                      className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+                    >
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {transaction.description}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(transaction.created_at).toLocaleString('zh-TW', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-red-600">-{transaction.points}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
         </div>

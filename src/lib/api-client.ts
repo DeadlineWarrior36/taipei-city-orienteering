@@ -12,6 +12,7 @@ import type {
   QuestOverviewResponse,
   MissionPathsResponse,
   UserResponse,
+  PointsTransactionsResponse,
 } from '@/types/api';
 
 class ApiClient {
@@ -125,6 +126,21 @@ class ApiClient {
 
   async getUserInfo(userId: string): Promise<UserResponse> {
     return this.get<UserResponse>(`/users/${userId}`);
+  }
+
+  async getPointsTransactions(
+    userId: string,
+    type?: 'earned' | 'used',
+    limit?: number
+  ): Promise<PointsTransactionsResponse> {
+    const params: Record<string, string | number> = {};
+    if (type) params.type = type;
+    if (limit) params.limit = limit;
+
+    return this.get<PointsTransactionsResponse>(
+      `/users/${userId}/points-transactions`,
+      params
+    );
   }
 }
 
