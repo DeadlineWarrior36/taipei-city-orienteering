@@ -53,14 +53,31 @@ class ApiClient {
     return response.json();
   }
 
-  private async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    const query = params ? `?${new URLSearchParams(params).toString()}` : '';
+  private async get<T>(endpoint: string, params?: object): Promise<T> {
+    if (!params) {
+      return this.request<T>(endpoint, {
+        method: 'GET',
+      });
+    }
+
+    // 過濾掉 undefined 的值並轉換為字串
+    const filteredParams: Record<string, string> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        filteredParams[key] = String(value);
+      }
+    });
+
+    const query = Object.keys(filteredParams).length > 0
+      ? `?${new URLSearchParams(filteredParams).toString()}`
+      : '';
+
     return this.request<T>(`${endpoint}${query}`, {
       method: 'GET',
     });
   }
 
-  private async post<T>(endpoint: string, data?: any): Promise<T> {
+  private async post<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
