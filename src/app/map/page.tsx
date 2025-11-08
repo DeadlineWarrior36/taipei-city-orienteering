@@ -10,8 +10,6 @@ import MissionPager from "./MissionPager";
 import useQuest from "./useQuest";
 import { useAuth } from "@/contexts/AuthContext";
 import useUserPoints from "./useUserPoints";
-import MissionEnd from "./MissionEnd";
-import moment from "moment";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false,
@@ -60,10 +58,6 @@ export default function MapPage() {
       console.error("Failed to start quest:", err);
     }
   }, [userId, selectedMissionId, startQuest]);
-
-  const showEnd = quest?.isFinished;
-
-  const duration = moment.duration(quest?.timeSpent || "");
 
   // Initialize reordered locations when mission changes
   useEffect(() => {
@@ -145,55 +139,6 @@ export default function MapPage() {
             setSelectedMissionId(missions?.missions[index]?.id || "1")
           }
           onStart={handleStartQuest}
-        />
-      )}
-      {!showEnd ? (
-        <></>
-      ) : (
-        <MissionEnd
-          onPrimaryAction={() => {
-            console.log("View My Points clicked");
-          }}
-          missionName={selectedMission?.name || ""}
-          // totalPoints={150} /* Placeholder */
-          time={`${duration.minutes()}:${duration.seconds()}`} /* Placeholder */
-          distance={3200} /* Placeholder */
-          completedLocations={
-            selectedMission?.locations
-              // .concat(Array.from(selectedMission?.locations))
-              // .concat(Array.from(selectedMission?.locations))
-              .map((loc) => ({
-                id: loc.id,
-                name: loc.name,
-                description: loc.description ?? "",
-                points: 50, // Placeholder
-              })) || []
-          }
-        />
-      )}
-
-      {!showEnd ? (
-        <></>
-      ) : (
-        <MissionEnd
-          onPrimaryAction={() => {
-            console.log("View My Points clicked");
-          }}
-          missionName={selectedMission?.name || ""}
-          // totalPoints={150} /* Placeholder */
-          time={"1hr36min"} /* Placeholder */
-          distance={3200} /* Placeholder */
-          completedLocations={
-            selectedMission?.locations
-              // .concat(Array.from(selectedMission?.locations))
-              // .concat(Array.from(selectedMission?.locations))
-              .map((loc) => ({
-                id: loc.id,
-                name: loc.name,
-                description: loc.description ?? "",
-                points: 50, // Placeholder
-              })) || []
-          }
         />
       )}
 
