@@ -53,6 +53,17 @@ export default function MapPage() {
       return;
     }
     try {
+      // Reset state from previous quest
+      setLastCompletedCount(0);
+      setShowCompletionNotification(false);
+      setCompletedLocationName("");
+      setCompletionTime("");
+      setCompletionDistance(0);
+      setIsAllCompleted(false);
+      setShowMissionSummary(false);
+      setFinalQuestData(null);
+      setSelectedLocationId(null);
+
       await startQuest();
     } catch (err) {
       console.error("Failed to start quest:", err);
@@ -75,6 +86,9 @@ export default function MapPage() {
   const [completedLocationName, setCompletedLocationName] = useState("");
   const [completionTime, setCompletionTime] = useState("");
   const [completionDistance, setCompletionDistance] = useState(0);
+  const [isAllCompleted, setIsAllCompleted] = useState(false);
+  const [showMissionSummary, setShowMissionSummary] = useState(false);
+  const [finalQuestData, setFinalQuestData] = useState<{ time: string; distance: number } | null>(null);
 
   // Format ISO 8601 duration (PT1H2M3S) to readable format
   const formatDuration = (duration: string) => {
@@ -102,11 +116,34 @@ export default function MapPage() {
         setCompletionTime(formatDuration(quest?.timeSpent || "PT0S"));
         setCompletionDistance(quest?.distance || 0);
         setShowCompletionNotification(true);
-        setTimeout(() => setShowCompletionNotification(false), 5000);
+
+        // Check if all locations are completed
+        const allCompleted = currentCount === displayLocations.length;
+        setIsAllCompleted(allCompleted);
+
+        if (!allCompleted) {
+          setTimeout(() => setShowCompletionNotification(false), 5000);
+        }
       }
     }
     setLastCompletedCount(currentCount);
   }, [quest?.completedLocationIds, lastCompletedCount, displayLocations, quest?.timeSpent, quest?.distance]);
+
+  // Handle closing completion notification
+  const handleCloseCompletionNotification = async () => {
+    setShowCompletionNotification(false);
+    if (isAllCompleted) {
+      // Save final quest data before clearing
+      setFinalQuestData({
+        time: completionTime,
+        distance: completionDistance,
+      });
+      // End quest (this will clear quest state)
+      await endQuest();
+      // Show summary with saved data
+      setShowMissionSummary(true);
+    }
+  };
 
   // Handle drag and drop reordering
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -283,7 +320,17 @@ export default function MapPage() {
                 <span>一鍵導航</span>
               </button>
               <button
-                onClick={endQuest}
+                onClick={async () => {
+                  // Save current quest data before ending
+                  if (quest) {
+                    setFinalQuestData({
+                      time: formatDuration(quest.timeSpent || "PT0S"),
+                      distance: quest.distance || 0,
+                    });
+                  }
+                  await endQuest();
+                  setShowMissionSummary(true);
+                }}
                 className="flex-1 bg-white text-red-600 px-4 py-3 rounded-xl hover:bg-white/90 active:scale-95 transition-all shadow-lg font-bold"
               >
                 結束任務
@@ -297,7 +344,7 @@ export default function MapPage() {
       {showCompletionNotification && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[6000] flex items-center justify-center animate-in fade-in duration-300"
-          onClick={() => setShowCompletionNotification(false)}
+          onClick={handleCloseCompletionNotification}
         >
           <div
             className="relative rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-4 min-w-[320px] animate-in zoom-in duration-300"
@@ -306,7 +353,7 @@ export default function MapPage() {
           >
             {/* Close button */}
             <button
-              onClick={() => setShowCompletionNotification(false)}
+              onClick={handleCloseCompletionNotification}
               className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
             >
               <X className="h-6 w-6" strokeWidth={2} />
@@ -342,6 +389,55 @@ export default function MapPage() {
                   <div className="text-lg font-bold text-white">{quest?.completedLocationIds?.length || 0} / {displayLocations.length}</div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mission Summary - All Completed */}
+      {showMissionSummary && !isRecording && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[6000] flex items-center justify-center animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-[90vw] animate-in zoom-in duration-300">
+            <div className="text-center mb-6">
+              <div className="text-4xl font-bold mb-2" style={{ color: "var(--brand, #5AB4C5)" }}>
+                恭喜完成！
+              </div>
+              <div className="text-2xl font-bold text-neutral-800 mb-4">
+                {selectedMission?.name}
+              </div>
+            </div>
+
+            <div className="bg-neutral-50 rounded-2xl p-6 mb-6">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-sm text-neutral-600 mb-1">總時間</div>
+                  <div className="text-xl font-bold text-neutral-800">{finalQuestData?.time || "0:00"}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-neutral-600 mb-1">總距離</div>
+                  <div className="text-xl font-bold text-neutral-800">{(finalQuestData?.distance || 0).toFixed(0)}m</div>
+                </div>
+                <div>
+                  <div className="text-sm text-neutral-600 mb-1">完成點</div>
+                  <div className="text-xl font-bold text-neutral-800">{displayLocations.length}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push(`/missions/${selectedMissionId}/paths`)}
+                className="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-90 active:scale-95"
+                style={{ background: "var(--brand, #5AB4C5)" }}
+              >
+                查看任務詳細資料
+              </button>
+              <button
+                onClick={() => setShowMissionSummary(false)}
+                className="w-full py-3 rounded-xl font-bold text-neutral-700 bg-neutral-100 transition-all hover:bg-neutral-200 active:scale-95"
+              >
+                返回地圖
+              </button>
             </div>
           </div>
         </div>

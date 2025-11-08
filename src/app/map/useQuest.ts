@@ -98,12 +98,13 @@ export function useQuest({
     [questId, userId]
   );
 
-  // End quest: set end time, stop recording, and finalize via API
+  // End quest: set end time, stop recording, and clear quest state
   const endQuest = useCallback(async () => {
     if (!quest || !questId) return;
-    const finishedQuest = { ...quest, endTime: Date.now() };
-    setQuest(finishedQuest);
     setIsRecording(false);
+    // Clear quest state to remove markers and path from map
+    setQuest(null);
+    setQuestId(null);
   }, [quest, questId]);
 
   return {
