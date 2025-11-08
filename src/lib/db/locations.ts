@@ -17,7 +17,7 @@ export async function getLocations(params?: {
   lat?: number;
 }): Promise<Location[]> {
   const supabase = supabaseAdmin();
-  let query = supabase.from('locations').select('*');
+  const query = supabase.from('locations').select('*');
 
   const { data, error } = await query;
 

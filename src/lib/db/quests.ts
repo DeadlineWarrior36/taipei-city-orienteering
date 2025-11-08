@@ -84,7 +84,7 @@ export async function getQuestPaths(questId: string): Promise<Coordinate[]> {
     throw new Error(`Failed to fetch quest paths: ${error.message}`);
   }
 
-  return (data || []).map((p: any) => ({
+  return (data || []).map((p: Pick<QuestPathRecord, 'lnt' | 'lat' | 'sequence_order'>) => ({
     lnt: p.lnt,
     lat: p.lat,
   }));
@@ -169,8 +169,8 @@ export async function getQuestsByMissionId(
   return quests.map(quest => ({
     id: quest.id,
     path: (paths || [])
-      .filter((p: any) => p.quest_id === quest.id)
-      .map((p: any) => ({
+      .filter((p: Pick<QuestPathRecord, 'quest_id' | 'lnt' | 'lat' | 'sequence_order'>) => p.quest_id === quest.id)
+      .map((p: Pick<QuestPathRecord, 'quest_id' | 'lnt' | 'lat' | 'sequence_order'>) => ({
         lnt: p.lnt,
         lat: p.lat,
       })),

@@ -8,20 +8,31 @@ export interface MissionRecord {
   updated_at: string;
 }
 
+interface LocationData {
+  id: string;
+  name: string;
+  lnt: number;
+  lat: number;
+  point: number;
+  description?: string;
+}
+
 export interface MissionLocationRecord {
   id: string;
   mission_id: string;
   location_id: string;
   sequence_order: number;
   created_at: string;
-  locations: {
-    id: string;
-    name: string;
-    lnt: number;
-    lat: number;
-    point: number;
-  };
+  locations: LocationData;
 }
+
+type MissionLocationWithJoin = {
+  id: string;
+  mission_id: string;
+  location_id: string;
+  sequence_order: number;
+  locations: LocationData[];
+};
 
 export async function getMissions(): Promise<Mission[]> {
   const supabase = supabaseAdmin();
@@ -64,14 +75,14 @@ export async function getMissions(): Promise<Mission[]> {
     id: mission.id,
     name: mission.name,
     locations: (missionLocations || [])
-      .filter((ml: any) => ml.mission_id === mission.id)
-      .map((ml: any) => ({
-        id: ml.locations.id,
-        name: ml.locations.name,
-        lnt: ml.locations.lnt,
-        lat: ml.locations.lat,
-        point: ml.locations.point,
-        description: ml.locations.description,
+      .filter((ml: MissionLocationWithJoin) => ml.mission_id === mission.id)
+      .map((ml: MissionLocationWithJoin) => ({
+        id: ml.locations[0].id,
+        name: ml.locations[0].name,
+        lnt: ml.locations[0].lnt,
+        lat: ml.locations[0].lat,
+        point: ml.locations[0].point,
+        description: ml.locations[0].description,
       })),
   }));
 }
@@ -118,13 +129,13 @@ export async function getMissionById(id: string): Promise<Mission | null> {
   return {
     id: mission.id,
     name: mission.name,
-    locations: (missionLocations || []).map((ml: any) => ({
-      id: ml.locations.id,
-      name: ml.locations.name,
-      lnt: ml.locations.lnt,
-      lat: ml.locations.lat,
-      point: ml.locations.point,
-      description: ml.locations.description,
+    locations: (missionLocations || []).map((ml: MissionLocationWithJoin) => ({
+      id: ml.locations[0].id,
+      name: ml.locations[0].name,
+      lnt: ml.locations[0].lnt,
+      lat: ml.locations[0].lat,
+      point: ml.locations[0].point,
+      description: ml.locations[0].description,
     })),
   };
 }
