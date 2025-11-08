@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { QuestOverviewResponse } from '@/types/api';
 import { getQuestById, getQuestPaths, getCompletedLocationIds } from '@/lib/db/quests';
+import { calculatePathDistance } from '@/lib/utils/distance';
+import { getMissionById } from '@/lib/db/missions';
 
 export async function GET(
   request: NextRequest,
@@ -25,12 +27,34 @@ export async function GET(
     const paths = await getQuestPaths(quest_id);
     const completedLocationIds = await getCompletedLocationIds(quest_id, paths);
 
+    // 計算距離（公尺）
+    const distance = calculatePathDistance(paths);
+
+    // 計算時間（ISO 8601 duration format）
+    const createdAt = new Date(quest.created_at);
+    const updatedAt = new Date(quest.updated_at);
+    const durationMs = updatedAt.getTime() - createdAt.getTime();
+    const durationSeconds = Math.floor(durationMs / 1000);
+    const time_spent = `PT${durationSeconds}S`;
+
+    // 計算分數
+    const mission = await getMissionById(quest.mission_id);
+    let points = 0;
+    if (mission) {
+      for (const locationId of completedLocationIds) {
+        const location = mission.locations.find(loc => loc.id === locationId);
+        if (location) {
+          points += location.point;
+        }
+      }
+    }
+
     const response: QuestOverviewResponse = {
       mission_id: quest.mission_id,
       path: paths,
-      points: 0,
-      time_spent: 'PT0S',
-      distance: 0,
+      points,
+      time_spent,
+      distance: Math.round(distance),
       completed_location_ids: completedLocationIds,
     };
 

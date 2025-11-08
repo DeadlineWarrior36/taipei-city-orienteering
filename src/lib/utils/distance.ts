@@ -29,3 +29,17 @@ export function isWithinDistance(
 ): boolean {
   return calculateDistance(coord, target) <= maxDistance;
 }
+
+/**
+ * 計算路徑的總距離（公尺）
+ */
+export function calculatePathDistance(paths: Coordinate[]): number {
+  if (paths.length < 2) return 0;
+
+  let totalDistance = 0;
+  for (let i = 0; i < paths.length - 1; i++) {
+    totalDistance += calculateDistance(paths[i], paths[i + 1]);
+  }
+
+  return totalDistance;
+}

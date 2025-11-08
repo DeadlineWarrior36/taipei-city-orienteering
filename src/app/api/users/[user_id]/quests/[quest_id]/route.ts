@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SubmitQuestRequest, SubmitQuestResponse } from '@/types/api';
 import { getQuestById, updateQuestPaths, getCompletedLocationIds } from '@/lib/db/quests';
+import { calculatePathDistance } from '@/lib/utils/distance';
+import { getMissionById } from '@/lib/db/missions';
 
 export async function POST(
   request: NextRequest,
@@ -33,10 +35,32 @@ export async function POST(
 
     const updatedQuest = await getQuestById(quest_id);
 
+    // 計算距離（公尺）
+    const distance = calculatePathDistance(body.paths);
+
+    // 計算時間（ISO 8601 duration format）
+    const createdAt = new Date(updatedQuest?.created_at || quest.created_at);
+    const updatedAt = new Date(updatedQuest?.updated_at || quest.updated_at);
+    const durationMs = updatedAt.getTime() - createdAt.getTime();
+    const durationSeconds = Math.floor(durationMs / 1000);
+    const time_spent = `PT${durationSeconds}S`;
+
+    // 計算分數
+    const mission = await getMissionById(quest.mission_id);
+    let points = 0;
+    if (mission) {
+      for (const locationId of completedLocationIds) {
+        const location = mission.locations.find(loc => loc.id === locationId);
+        if (location) {
+          points += location.point;
+        }
+      }
+    }
+
     const response: SubmitQuestResponse = {
-      points: 0,
-      time_spent: 'PT0S',
-      distance: 0,
+      points,
+      time_spent,
+      distance: Math.round(distance),
       completed_location_ids: completedLocationIds,
       is_finished: updatedQuest?.is_finished ?? false,
     };
