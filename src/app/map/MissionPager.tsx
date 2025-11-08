@@ -62,6 +62,7 @@ export default function MissionPager({
     dragStartY.current = e.clientY;
     dragStartPct.current = sheetPct;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    // console.log("onPointerDown:", dragStartY.current, dragStartPct.current);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -71,16 +72,21 @@ export default function MissionPager({
     const delta = -(dy / vh); // 往上為正值
     const next = clamp(dragStartPct.current + delta, 0.25, 0.95);
     setSheetPct(next);
+    // console.log("onPointerMove:", next);
   };
 
   const onPointerUp = () => {
     if (dragStartY.current === null) return;
     // 放手時吸附到最近的 snap point
-    const nearest = snaps.reduce((p, c) =>
-      Math.abs(c - sheetPct) < Math.abs(p - sheetPct) ? c : p
-    );
-    setSheetPct(nearest);
-    dragStartY.current = null;
+    setTimeout(() => {
+      const nearest = snaps.reduce((p, c) =>
+        Math.abs(c - sheetPct) < Math.abs(p - sheetPct) ? c : p
+      );
+      setSheetPct(nearest);
+      dragStartY.current = null;
+      // console.log("onPointerUp:", nearest);
+    }, 100);
+
   };
 
   return (
@@ -102,6 +108,9 @@ export default function MissionPager({
       <div
         className="fixed inset-x-0 bottom-0 z-[1100]"
         style={{ height: sheetVH }}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onPointerMove={onPointerMove}
       >
         <div className="mx-auto h-full w-full max-w-screen-lg px-3">
           <div
@@ -110,12 +119,17 @@ export default function MissionPager({
           >
             {/* handle（可拖拉） */}
             <div
-              className="absolute left-1/2 top-3 -translate-x-1/2 h-1.5 w-12 rounded-full bg-neutral-300/90 cursor-grab active:cursor-grabbing"
+              className="absolute left-1/2 top-3 -translate-x-1/2"
               onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-            />
+            >
+              <div className="relative">
+                {/* 透明的放大感應區 */}
+                <div className="absolute -inset-y-4 -inset-x-20"></div>
+
+                {/* 看得到的灰色條 */}
+                <div className="relative z-[1] h-1.5 w-12 rounded-full bg-neutral-300/90 cursor-grab active:cursor-grabbing"></div>
+              </div>
+            </div>
             <div className="absolute right-4 top-3.5 z-[1] flex gap-1.5">
               {missions.map((_, i) => (
                 <span
