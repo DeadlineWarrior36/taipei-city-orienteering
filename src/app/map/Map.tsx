@@ -13,14 +13,12 @@ import { Coordinate, Location } from "@/types/api";
 import { useGeolocated } from "react-geolocated";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MissionDisplay from "./MissionDisplay";
-import LocationsList from "./LocationsList";
 import { Scan } from "lucide-react";
 
 export default function Map({
   locations,
   completedLocationIds,
   showMission = true,
-  title,
   // optional quest logging and display
   logPath,
   quest,
@@ -32,12 +30,11 @@ export default function Map({
   locations?: Location[];
   completedLocationIds?: string[];
   showMission?: boolean;
-  title?: string;
   logPath?: (c: Coordinate) => Promise<void> | void;
   quest?: { path: Coordinate[] } | null;
   isRecording?: boolean;
   selectedLocationId?: string | null;
-  onLocationClick?: (locationId: string) => void;
+  onLocationClick?: (locationId: string | null) => void;
 }) {
   // Development mode: coordinate offset control
   const [latOffset, setLatOffset] = useState(0);
@@ -156,7 +153,7 @@ export default function Map({
   // Function to reset map view to show all locations + current position
   const handleResetView = () => {
     if (onLocationClick) {
-      onLocationClick(null as any); // Clear selection
+      onLocationClick(null); // Clear selection
     }
     setShouldFitBounds(true);
     setTimeout(() => setShouldFitBounds(false), 100);

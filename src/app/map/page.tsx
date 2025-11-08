@@ -25,7 +25,14 @@ export default function MapPage() {
   // Selected mission state
   const [selectedMissionId, setSelectedMissionId] = useState("1");
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
-  const [reorderedLocations, setReorderedLocations] = useState<any[]>([]);
+  const [reorderedLocations, setReorderedLocations] = useState<Array<{
+    id: string;
+    name: string;
+    lat: number;
+    lnt: number;
+    point: number;
+    description?: string;
+  }>>([]);
 
   // Fetch missions data
   const { missions } = useMissionsList();
