@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SubmitQuestRequest, SubmitQuestResponse } from '@/types/api';
-import { getQuestById, updateQuestPaths, getCompletedLocationIds } from '@/lib/db/quests';
+import { getQuestById, updateQuestPaths, getCompletedLocationIds, PathPrefixError } from '@/lib/db/quests';
 import { calculatePathDistance } from '@/lib/utils/distance';
 import { getMissionById } from '@/lib/db/missions';
 
@@ -67,6 +67,9 @@ export async function POST(
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
+    if (error instanceof PathPrefixError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     console.error('Error submitting quest paths:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
