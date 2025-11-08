@@ -110,3 +110,34 @@ export interface PointsTransaction {
 export interface PointsTransactionsResponse {
   transactions: PointsTransaction[];
 }
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  points_required: number;
+  stock: number;
+  is_available: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductPurchase {
+  id: string;
+  user_id: string;
+  product_id: string;
+  quantity: number;
+  total_points: number;
+  created_at: string;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalMissions: number;
+  totalLocations: number;
+  totalProducts: number;
+  totalQuests: number;
+  completedQuests: number;
+  totalPointsEarned: number;
+  totalPointsUsed: number;
+}
