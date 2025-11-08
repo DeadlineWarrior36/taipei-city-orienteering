@@ -15,6 +15,7 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL=https://web-api-server-167351732833.asia-east1.run.app/api/v1
 
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NODE_ENV=development
 RUN yarn build
 
 # Production stage
