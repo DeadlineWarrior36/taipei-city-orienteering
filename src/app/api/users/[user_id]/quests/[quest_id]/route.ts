@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SubmitQuestRequest, SubmitQuestResponse } from '@/types/api';
+import { getQuestById, updateQuestPaths } from '@/lib/db/quests';
 
 export async function POST(
   request: NextRequest,
@@ -13,14 +14,26 @@ export async function POST(
       return NextResponse.json({ error: 'paths is required' }, { status: 400 });
     }
 
+    const quest = await getQuestById(quest_id);
+    if (!quest) {
+      return NextResponse.json({ error: 'Quest not found' }, { status: 404 });
+    }
+
+    if (quest.user_id !== user_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    await updateQuestPaths(quest_id, body.paths);
+
     const response: SubmitQuestResponse = {
-      points: 45,
-      time_spent: 'PT1H30M',
-      distance: 5.2,
+      points: 0,
+      time_spent: 'PT0S',
+      distance: 0,
     };
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    console.error('Error submitting quest paths:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

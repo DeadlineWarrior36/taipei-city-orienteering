@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { CreateQuestRequest, CreateQuestResponse } from '@/types/api';
+import { createQuest } from '@/lib/db/quests';
 
 export async function POST(
   request: NextRequest,
@@ -13,14 +14,15 @@ export async function POST(
       return NextResponse.json({ error: 'mission_id is required' }, { status: 400 });
     }
 
-    const quest_id = crypto.randomUUID();
+    const questId = await createQuest(user_id, body.mission_id);
 
     const response: CreateQuestResponse = {
-      id: quest_id,
+      id: questId,
     };
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    console.error('Error creating quest:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
