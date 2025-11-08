@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { QuestOverviewResponse } from '@/types/api';
-import { withCors, handleCorsOptions } from '@/lib/cors';
-
-export async function OPTIONS(request: NextRequest) {
-  return handleCorsOptions(request);
-}
 
 export async function GET(
   request: NextRequest,
@@ -25,11 +20,8 @@ export async function GET(
       distance: 5.2,
     };
 
-    return withCors(NextResponse.json(response, { status: 200 }), request);
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    return withCors(
-      NextResponse.json({ error: 'Invalid request' }, { status: 400 }),
-      request
-    );
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 }

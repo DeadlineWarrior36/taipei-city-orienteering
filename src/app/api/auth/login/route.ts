@@ -2,21 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { LoginRequest, LoginResponse } from '@/types/api';
 import { supabaseAdmin } from '@/lib/supabase';
 import { randomBytes } from 'crypto';
-import { withCors, handleCorsOptions } from '@/lib/cors';
-
-export async function OPTIONS(request: NextRequest) {
-  return handleCorsOptions(request);
-}
 
 export async function POST(request: NextRequest) {
   try {
     const body: LoginRequest = await request.json();
 
     if (!body.id || typeof body.id !== 'string') {
-      return withCors(
-        NextResponse.json({ error: 'Invalid user id' }, { status: 400 }),
-        request
-      );
+      return NextResponse.json({ error: 'Invalid user id' }, { status: 400 });
     }
 
     const { data: existingUser } = await supabaseAdmin()
@@ -32,10 +24,7 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error('Error creating user:', insertError);
-        return withCors(
-          NextResponse.json({ error: 'Failed to create user' }, { status: 500 }),
-          request
-        );
+        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
       }
     }
 
@@ -54,22 +43,16 @@ export async function POST(request: NextRequest) {
 
     if (sessionError) {
       console.error('Error creating session:', sessionError);
-      return withCors(
-        NextResponse.json({ error: 'Failed to create session' }, { status: 500 }),
-        request
-      );
+      return NextResponse.json({ error: 'Failed to create session' }, { status: 500 });
     }
 
     const response: LoginResponse = {
       token,
     };
 
-    return withCors(NextResponse.json(response, { status: 200 }), request);
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error('Login error:', error);
-    return withCors(
-      NextResponse.json({ error: 'Invalid request' }, { status: 400 }),
-      request
-    );
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 }
