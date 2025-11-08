@@ -103,10 +103,11 @@ export default function MapPage() {
         />
       )}
 
-      {!showEnd ? <></> : (
-        <MissionEnd          
+      {!showEnd ? (
+        <></>
+      ) : (
+        <MissionEnd
           onPrimaryAction={() => {
-            setShowEnd(false);
             console.log("View My Points clicked");
           }}
           missionName={selectedMission?.name || ""}
@@ -118,19 +119,19 @@ export default function MapPage() {
               // .concat(Array.from(selectedMission?.locations))
               // .concat(Array.from(selectedMission?.locations))
               .map((loc) => ({
-              id: loc.id,
-              name: loc.name,
-              description: loc.description ?? "",
-              points: 50, // Placeholder
-            })) || []
+                id: loc.id,
+                name: loc.name,
+                description: loc.description ?? "",
+                points: 50, // Placeholder
+              })) || []
           }
-       />
+        />
       )}
 
       <button
-        onClick={() => router.push('/points')}
+        onClick={() => router.push("/points")}
         className="absolute top-20 right-4 z-5000 px-5 py-1.5 shadow-lg hover:shadow-xl transition-shadow active:scale-95"
-        style={{ backgroundColor: '#DBF1F5', borderRadius: '999px' }}
+        style={{ backgroundColor: "#DBF1F5", borderRadius: "999px" }}
       >
         <div className="flex items-center gap-2">
           <Coins className="w-5 h-5 text-black" />
