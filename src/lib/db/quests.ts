@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import type { Coordinate } from '@/types/api';
 import { getMissionById } from './missions';
 import { isWithinDistance, calculatePathDistance } from '@/lib/utils/distance';
+import { formatDuration } from '@/lib/utils/duration';
 import { QUEST_CONFIG } from '@/config/quest';
 import { createPointsTransaction } from './points-transactions';
 
@@ -297,7 +298,7 @@ export async function getQuestsByMissionId(
     const updatedAt = new Date(quest.updated_at);
     const durationMs = updatedAt.getTime() - createdAt.getTime();
     const durationSeconds = Math.floor(durationMs / 1000);
-    const time_spent = `PT${durationSeconds}S`;
+    const time_spent = formatDuration(durationSeconds);
 
     const distance = calculatePathDistance(questPaths);
 

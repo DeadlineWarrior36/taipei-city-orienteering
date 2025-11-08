@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { QuestOverviewResponse } from '@/types/api';
 import { getQuestById, getQuestPaths, getCompletedLocationIds } from '@/lib/db/quests';
 import { calculatePathDistance } from '@/lib/utils/distance';
+import { formatDuration } from '@/lib/utils/duration';
 import { getMissionById } from '@/lib/db/missions';
 
 export async function GET(
@@ -35,7 +36,7 @@ export async function GET(
     const updatedAt = new Date(quest.updated_at);
     const durationMs = updatedAt.getTime() - createdAt.getTime();
     const durationSeconds = Math.floor(durationMs / 1000);
-    const time_spent = `PT${durationSeconds}S`;
+    const time_spent = formatDuration(durationSeconds);
 
     // 計算分數
     const mission = await getMissionById(quest.mission_id);
