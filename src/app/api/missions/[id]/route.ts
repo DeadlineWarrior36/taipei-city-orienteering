@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { MissionDetailResponse } from '@/types/api';
+import { getMissionById } from '@/lib/db/missions';
 
 export async function GET(
   request: NextRequest,
@@ -8,20 +9,29 @@ export async function GET(
   try {
     const { id } = await params;
 
+    const mission = await getMissionById(id);
+
+    if (!mission) {
+      return NextResponse.json({ error: 'Mission not found' }, { status: 404 });
+    }
+
     const response: MissionDetailResponse = {
       mission: {
-        id,
-        name: 'Taipei City Tour',
-        locations: [
-          { id: 'loc_1', lnt: 121.5654, lat: 25.0330, point: 10 },
-          { id: 'loc_2', lnt: 121.5200, lat: 25.0478, point: 15 },
-          { id: 'loc_3', lnt: 121.5100, lat: 25.0400, point: 20 },
-        ],
+        id: mission.id,
+        name: mission.name,
+        locations: mission.locations.map(loc => ({
+          id: loc.id,
+          name: loc.name,
+          lnt: loc.lnt,
+          lat: loc.lat,
+          point: loc.point,
+        })),
       },
     };
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    console.error('Error fetching mission:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

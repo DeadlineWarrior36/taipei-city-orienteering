@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { MissionsListResponse } from '@/types/api';
+import { getMissions } from '@/lib/db/missions';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,21 +25,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const missions = await getMissions();
+
     const response: MissionsListResponse = {
-      missions: [
-        {
-          id: 'mission_1',
-          name: 'Taipei City Tour',
-          locations: [
-            { id: 'loc_1', name: 'Taipei 101', lnt: 121.5654, lat: 25.0330, point: 10 },
-            { id: 'loc_2', name: 'National Palace Museum', lnt: 121.5200, lat: 25.0478, point: 15 },
-          ],
-        },
-      ],
+      missions,
     };
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    console.error('Error fetching missions:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
