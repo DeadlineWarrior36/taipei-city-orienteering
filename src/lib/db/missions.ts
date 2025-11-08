@@ -31,7 +31,7 @@ type MissionLocationWithJoin = {
   mission_id: string;
   location_id: string;
   sequence_order: number;
-  locations: LocationData[];
+  locations: LocationData;
 };
 
 export async function getMissions(): Promise<Mission[]> {
@@ -65,7 +65,7 @@ export async function getMissions(): Promise<Mission[]> {
       )
     `)
     .in('mission_id', missionIds)
-    .order('sequence_order');
+    .order('sequence_order') as { data: MissionLocationWithJoin[] | null; error: any };
 
   if (locationsError) {
     throw new Error(`Failed to fetch mission locations: ${locationsError.message}`);
@@ -77,12 +77,12 @@ export async function getMissions(): Promise<Mission[]> {
     locations: (missionLocations || [])
       .filter((ml: MissionLocationWithJoin) => ml.mission_id === mission.id)
       .map((ml: MissionLocationWithJoin) => ({
-        id: ml.locations[0].id,
-        name: ml.locations[0].name,
-        lnt: ml.locations[0].lnt,
-        lat: ml.locations[0].lat,
-        point: ml.locations[0].point,
-        description: ml.locations[0].description,
+        id: ml.locations.id,
+        name: ml.locations.name,
+        lnt: ml.locations.lnt,
+        lat: ml.locations.lat,
+        point: ml.locations.point,
+        description: ml.locations.description,
       })),
   }));
 }
@@ -120,7 +120,7 @@ export async function getMissionById(id: string): Promise<Mission | null> {
       )
     `)
     .eq('mission_id', id)
-    .order('sequence_order');
+    .order('sequence_order') as { data: MissionLocationWithJoin[] | null; error: any };
 
   if (locationsError) {
     throw new Error(`Failed to fetch mission locations: ${locationsError.message}`);
@@ -130,12 +130,12 @@ export async function getMissionById(id: string): Promise<Mission | null> {
     id: mission.id,
     name: mission.name,
     locations: (missionLocations || []).map((ml: MissionLocationWithJoin) => ({
-      id: ml.locations[0].id,
-      name: ml.locations[0].name,
-      lnt: ml.locations[0].lnt,
-      lat: ml.locations[0].lat,
-      point: ml.locations[0].point,
-      description: ml.locations[0].description,
+      id: ml.locations.id,
+      name: ml.locations.name,
+      lnt: ml.locations.lnt,
+      lat: ml.locations.lat,
+      point: ml.locations.point,
+      description: ml.locations.description,
     })),
   };
 }
