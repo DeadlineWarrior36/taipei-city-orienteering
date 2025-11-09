@@ -233,7 +233,7 @@ export default function Map({
       /> */}
 
       {/* Developer Controls - only in development */}
-      {process.env.NODE_ENV === "development" && (
+      {(
         <div className="absolute right-4 top-16 z-5000 bg-white/90 backdrop-blur rounded-lg shadow-lg p-4">
           <div className="grid grid-cols-3 gap-2 w-32">
             {/* Reset button */}
