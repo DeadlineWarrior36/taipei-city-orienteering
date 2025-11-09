@@ -73,7 +73,7 @@ const LaunchPage: React.FC = () => {
 
   return (
     <div style={styles.app}>
-      {/* background */}
+      {/* background - extended to cover full viewport */}
       <div style={styles.bgWrap}>
         <img src="launch-bg.jpeg" alt="Taipei street" style={styles.bgImg} />
         <div style={styles.overlay} />
@@ -83,25 +83,29 @@ const LaunchPage: React.FC = () => {
         </div> */}
       </div>
 
-      {/* bottom sheet */}
+      {/* bottom sheet with extended background */}
       <div
         style={{
-          ...styles.sheet,
+          ...styles.sheetContainer,
           transform: `translateY(${sheetY}px)`,
         }}
-        onPointerDown={onPointerDown}
       >
-        <div style={styles.handle} />
-        <h2 style={styles.sheetTitle}>歡迎加入「定向台北」！</h2>
-        <p style={styles.sheetBody}>
-          這是一場結合探索與挑戰的城市任務遊戲，我們希望讓你日常的移動，能夠成為改善城市的線索。
-          <br />
-          <br />
-          你可以接下任務，走訪街區、完成任務並累積點數。
-          <br />
-          <br />
-          現在就打開任務包，開始在台北街頭漫步吧！
-        </p>
+        <div
+          style={styles.sheet}
+          onPointerDown={onPointerDown}
+        >
+          <div style={styles.handle} />
+          <h2 style={styles.sheetTitle}>歡迎加入「定向台北」！</h2>
+          <p style={styles.sheetBody}>
+            這是一場結合探索與挑戰的城市任務遊戲，我們希望讓你日常的移動，能夠成為改善城市的線索。
+            <br />
+            <br />
+            你可以接下任務，走訪街區、完成任務並累積點數。
+            <br />
+            <br />
+            現在就打開任務包，開始在台北街頭漫步吧！
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -115,6 +119,7 @@ const styles: {
   heroText: React.CSSProperties;
   heroTitle: React.CSSProperties;
   heroSub: React.CSSProperties;
+  sheetContainer: React.CSSProperties;
   sheet: React.CSSProperties;
   handle: React.CSSProperties;
   sheetTitle: React.CSSProperties;
@@ -130,17 +135,19 @@ const styles: {
       "'Noto Sans TC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   },
   bgWrap: {
-    position: "absolute",
+    position: "fixed",
     inset: 0,
+    height: "100vh",
   },
   bgImg: {
     width: "100%",
     height: "100%",
-    objectFit: "cover", // <-- now typed correctly
+    objectFit: "cover",
   },
   overlay: {
     position: "absolute",
     inset: 0,
+    height: "100%",
     background:
       "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.75) 100%)",
   },
@@ -162,18 +169,23 @@ const styles: {
     opacity: 0.85,
     maxWidth: 340,
   },
-  sheet: {
+  sheetContainer: {
     position: "absolute",
     left: 0,
     right: 0,
     top: 0,
+    bottom: 0,
     background: "rgba(0, 0, 0, 0.5)",
+    transition: "transform 0.22s ease-out",
+    zIndex: 10,
+  },
+  sheet: {
+    position: "relative",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: "16px 20px 30px",
     boxShadow: "0 -10px 30px rgba(0,0,0,0.25)",
     minHeight: 350,
-    transition: "transform 0.22s ease-out",
     touchAction: "none",
   },
   handle: {
