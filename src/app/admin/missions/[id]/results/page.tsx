@@ -31,12 +31,20 @@ export default function MissionResultsPage({
   const fetchData = useCallback(async () => {
     try {
       const [missionRes, pathsRes] = await Promise.all([
-        fetch(`/api/missions/${missionId}`),
-        fetch(`/api/missions/${missionId}/paths`),
+        fetch(`/api/admin/missions/${missionId}`),
+        fetch(`/api/admin/missions/${missionId}/paths`),
       ]);
 
-      if (!missionRes.ok || !pathsRes.ok) {
-        throw new Error("Failed to fetch data");
+      if (!missionRes.ok) {
+        const errorData = await missionRes.json();
+        console.error("Mission API error:", missionRes.status, errorData);
+        throw new Error(`Failed to fetch mission: ${errorData.error || missionRes.statusText}`);
+      }
+
+      if (!pathsRes.ok) {
+        const errorData = await pathsRes.json();
+        console.error("Paths API error:", pathsRes.status, errorData);
+        throw new Error(`Failed to fetch paths: ${errorData.error || pathsRes.statusText}`);
       }
 
       const missionData = await missionRes.json();
