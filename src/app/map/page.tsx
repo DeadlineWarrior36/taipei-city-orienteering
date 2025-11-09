@@ -155,29 +155,6 @@ export default function MapPage() {
     }
   };
 
-  // Handle drag and drop reordering
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
-
-    const newLocations = [...displayLocations];
-    const draggedItem = newLocations[draggedIndex];
-    newLocations.splice(draggedIndex, 1);
-    newLocations.splice(index, 0, draggedItem);
-
-    setReorderedLocations(newLocations);
-    setDraggedIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
 
   // Open all locations in Google Maps
   const handleOpenAllNavigation = () => {
@@ -277,22 +254,16 @@ export default function MapPage() {
                     return (
                       <li
                         key={loc.id}
-                        draggable={!isCompleted}
-                        onDragStart={() => handleDragStart(j)}
-                        onDragOver={(e) => handleDragOver(e, j)}
-                        onDragEnd={handleDragEnd}
                         onClick={() => setSelectedLocationId(loc.id)}
                         className={`flex items-center gap-2 p-3 rounded-xl transition-all ${
                           isSelected
                             ? "bg-[color:var(--brand,#5AB4C5)]/20 ring-2 ring-[color:var(--brand,#5AB4C5)]"
                             : isCompleted
                             ? "bg-green-50 hover:bg-green-100"
-                            : "bg-neutral-50 hover:bg-neutral-100 cursor-move"
+                            : "bg-neutral-50 hover:bg-neutral-100 cursor-pointer"
                         }`}
+                        style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' } as React.CSSProperties}
                       >
-                        {!isCompleted && (
-                          <GripVertical className="h-4 w-4 text-neutral-400 shrink-0" />
-                        )}
                         <span
                           className={`grid h-7 w-7 place-items-center rounded-full text-xs font-semibold shrink-0 ${
                             isCompleted
