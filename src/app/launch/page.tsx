@@ -92,15 +92,15 @@ const LaunchPage: React.FC = () => {
         onPointerDown={onPointerDown}
       >
         <div style={styles.handle} />
-        <h2 style={styles.sheetTitle}>歡迎來到「台北城市漫步計畫」</h2>
+        <h2 style={styles.sheetTitle}>歡迎加入「定向台北」！</h2>
         <p style={styles.sheetBody}>
-          我們希望讓你的日常移動與探索，都能成為改善城市的線索。
+          這是一場結合探索與挑戰的城市任務遊戲，我們希望讓你日常的移動，能夠成為改善城市的線索。
           <br />
           <br />
-          沒有固定路線，沒有時間限制。
+          你可以接下任務，走訪街區、完成任務並累積點數。
           <br />
           <br />
-          在這裡，你可以接下城市任務、走訪街區、上傳你的觀察，同時讓市府了解哪些都市空間更需要改變！
+          現在就打開任務包，開始在台北街頭漫步吧！
         </p>
       </div>
     </div>
