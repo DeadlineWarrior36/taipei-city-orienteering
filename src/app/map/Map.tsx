@@ -242,7 +242,7 @@ export default function Map({
                 setLatOffset(0);
                 setLngOffset(0);
               }}
-              className="col-start-2 px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+              className="col-span-3 px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
             >
               Reset
             </button>
